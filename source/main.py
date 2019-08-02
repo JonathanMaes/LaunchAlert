@@ -3,9 +3,10 @@
 import locale
 import time
 import urllib.request
+import webbrowser
 import zroya
 status = zroya.init(
-    app_name="LaunchNotifications",
+    app_name="Jonathan's Launch Notifications",
     company_name="OrOrg Development inc.",
     product_name="Launch Alert",
     sub_product="core",
@@ -19,8 +20,8 @@ from datetime import datetime
 from win10toast import ToastNotifier
 
 
-def checkWebsite(num):
-    if num == 0:
+def checkWebsite(websiteNumber, num=0):
+    if websiteNumber == 0:
         url = 'http://rocketlaunch.live'
 
         try:
@@ -30,14 +31,15 @@ def checkWebsite(num):
         except urllib.error.HTTPError:
             return emptyDict()
 
-        nextLaunch = soup.find_all('div', class_='launch')[0] # First <div> with class launch is the next launch div
+        nextLaunch = soup.find_all('div', class_='launch')[num] # First <div> with class launch is the next launch div
         details = nextLaunch.find_all('h4', {'itemprop': 'name'})[0].find_all('a')[0] # The div contains an <h4> with an <a> with the sattelite in
 
         liveLink = None
-        liveFeedDiv = nextLaunch.find_all('div', class_='launch_live_embed')[0] # The div containing the video has class 'launch_live_embed'
-        if len(liveFeedDiv.find_all('iframe')) > 0:
-            iframe = liveFeedDiv.find_all('iframe')[0] # That div contains an iframe which renders the video
-            liveLink = iframe['src'] # The 'src' attribute of that iframe contains the link to the video (often youtube)
+        if len(nextLaunch.find_all('div', class_='launch_live_embed')) > 0:
+            liveFeedDiv = nextLaunch.find_all('div', class_='launch_live_embed')[0] # The div containing the video has class 'launch_live_embed'
+            if len(liveFeedDiv.find_all('iframe')) > 0:
+                iframe = liveFeedDiv.find_all('iframe')[0] # That div contains an iframe which renders the video
+                liveLink = iframe['src'] # The 'src' attribute of that iframe contains the link to the video (often youtube)
         
         try:
             mission = details.text
@@ -50,18 +52,8 @@ def checkWebsite(num):
             timeSinceEpoch = 1e100
             mission = detailed_link = vehicle = provider = location = None
 
-        return {
-            'link' : detailed_link,
-            'liveLink' : liveLink,
-            'mission' : mission,
-            'time' : timeSinceEpoch,
-            'rocket' : vehicle,
-            'provider' : provider,
-            'location' : location
-        }
-
-    elif num == 1:
-        url = 'https://nextspaceflight.com'
+    elif websiteNumber == 1:
+        url = 'https://nextspaceflight.com/launches'
 
         try:
             with urllib.request.urlopen(url) as response:
@@ -70,7 +62,7 @@ def checkWebsite(num):
         except urllib.error.HTTPError:
             return emptyDict()
 
-        nextLaunch = soup.find_all('div', class_='demo-card-square')[0] # The first div with class 'demo-card-square' is the first launch
+        nextLaunch = soup.find_all('div', class_='demo-card-square')[num] # The first div with class 'demo-card-square' is the first launch
 
         try:
             links = nextLaunch.find_all('a')
@@ -99,16 +91,19 @@ def checkWebsite(num):
             location = None
             timeSinceEpoch = 1e100 # Just a large value so this isnt taken as the actual launch time later on
             # Concidentally, this is also the time of the first liftoff of SLS
-        
-        return {
-            'link' : detailed_link,
-            'liveLink' : liveLink,
-            'mission' : mission,
-            'time' : timeSinceEpoch,
-            'rocket' : vehicle,
-            'provider' : provider,
-            'location' : location
-        }
+
+    if timeSinceEpoch - time.time() < 0:
+        return checkWebsite(websiteNumber, num=num+1)
+
+    return {
+        'link' : detailed_link,
+        'liveLink' : liveLink,
+        'mission' : mission,
+        'time' : timeSinceEpoch,
+        'rocket' : vehicle,
+        'provider' : provider,
+        'location' : location
+    }
 
 
 def emptyDict():
@@ -147,6 +142,38 @@ def generateSummary(listOfDicts):
         'location' : d['location'][i] if d['location'][i] is not None else next((x for x in d['location'] if x is not None), '')
     }
 
+def onAction(nid, action_id, data):
+    '''
+        Action 0: Dismiss
+        Action 1: More info -> link to data['link']
+        Action 2: Watch live -> link to data['liveLink']
+    '''
+    if action_id == 0: # Dismiss
+        return
+    if action_id == 1: # More info
+        webbrowser.open(data['link'])  # Go to example.com
+    if action_id == 2:
+        webbrowser.open(data['liveLink'])
+
+
+def generateTemplate(data, firstLine='Next launch:'):
+    template = zroya.Template(zroya.TemplateType.ImageAndText4)
+    template.setFirstLine(firstLine)
+    if firstLine == 'Next launch:':
+        template.setSecondLine('%s (T-%d hours)' % (beautifyTime(data['time']), (data['time']-int(time.time()))//3600))
+    else:
+        template.setSecondLine('%s' % beautifyTime(data['time']))
+    template.setThirdLine('%s (%s) | %s' % (data['rocket'], data['provider'], data['mission']))
+    template.setAudio(audio=zroya.Audio.Reminder)
+    template.setImage('data/rocket.png')
+    template.setAttribution('%s' % data['location'])
+
+    template.addAction("Dismiss")
+    template.addAction("More info")
+    if data['liveLink']:
+        template.addAction("Watch live")
+    return template
+
 
 def main():
     site1 = checkWebsite(0)
@@ -154,29 +181,36 @@ def main():
     data = generateSummary([site1, site2])
     print(data)
 
+    # On start of the program, display the next launch no matter what
+    zroya.show(generateTemplate(data), on_action=lambda nic, action_id: onAction(nic, action_id, data))
 
-    template = zroya.Template(zroya.TemplateType.ImageAndText4)
-    template.setFirstLine('Next launch:')
-    template.setSecondLine('%s | %s' % (data['rocket'], data['mission']))
-    template.setThirdLine('%s (T-%d hours)' % (beautifyTime(data['time']), (data['time']-int(time.time()))//3600))
-    template.setAudio(audio=zroya.Audio.Reminder)
-    template.setImage('data/rocket.png')
-    template.addAction("More info")
-    template.addAction("Dismiss")
-    zroya.show(template)
-
-    importantTimes = [0, 60, 15*60, 3600, 6*3600, 24*3600, 1e100]
-    importantTimeStrings = ['Liftoff!', 'T-1 minute!', 'T-15 minutes.', 'T-1 hour.', 'T-6 hours.', 'T-1 day.', 'Next launch:']
-    lastImportantTime = importantTimes[-1]
+    importantTimes = [-1e100, 0, 60, 15*60, 3600, 6*3600, 24*3600, 2*24*3600]
+    importantTimeStrings = ['', 'Liftoff!', 'T-1 minute!', 'T-15 minutes.', 'T-1 hour.', 'T-6 hours.', 'T-1 day.', 'Next launch:']
 
     maximumRecheckTime = 1800
 
     while True:
-        currentTime = int(time.time())
+        site1 = checkWebsite(0)
+        site2 = checkWebsite(1)
+        data = generateSummary([site1, site2])
+        print(data)
+
+        # See if a next importantTime is in the next 1800 seconds, otherwise wait 1800 seconds
+        # If a next importantTime is in the next 1800 seconds, then only wait that long, and then after that
+        #  re-show the notification with the corresponding importantTimeString
+
+        currentTime = int(time.time())+1
         nextImportantTime = [t for t in importantTimes if data['time']-currentTime > t][-1]
-        # template.setFirstLine('')
-        time.sleep(min(20, maximumRecheckTime))
-        break
+        untilNextTime = (data['time'] - currentTime) - nextImportantTime
+
+        if untilNextTime < maximumRecheckTime:
+            time.sleep(untilNextTime)
+
+            firstLine = importantTimeStrings[importantTimes.index(nextImportantTime)]
+            zroya.show(generateTemplate(data, firstLine=firstLine), on_action=lambda nic, action_id: onAction(nic, action_id, data))
+        else:
+            time.sleep(maximumRecheckTime)
+        # break
 
 
 if __name__ == "__main__":
