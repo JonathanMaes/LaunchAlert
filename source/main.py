@@ -164,7 +164,7 @@ def checkWebsites():
                 print('%s: Error while parsing HTML structure:\n%s' % (url, traceback.format_exc()))
 
         allLaunches.append(sorted(launchesList, key=lambda l:l.time))
-    except urllib.error.HTTPError:
+    except (urllib.error.HTTPError, urllib.error.URLError):
         print('%s: could not connect to website.' % (url))
 
 
@@ -205,7 +205,7 @@ def checkWebsites():
                 print('%s: Error while parsing HTML structure:\n%s' % (url, traceback.format_exc()))
             
         allLaunches.append(sorted(launchesList, key=lambda l:l.time))
-    except urllib.error.HTTPError:
+    except (urllib.error.HTTPError, urllib.error.URLError):
         print('%s: could not connect to website.' % (url))
 
     return allLaunches
