@@ -2,10 +2,12 @@
 
 # Ideas:
 # Stop using zroya and use an actual window without border (self.overrideredirect=True in tkinter App)
+# Collapse rocket and company names to closest result with difflib.get_close_matches()
 
 import difflib
 import locale
 import math
+import os
 import time
 import tkinter as tk
 import traceback
@@ -38,10 +40,10 @@ class Launch:
         @param liveLink (str)[None]: Link to the live webcast, if available.
         @param location (str)[None]: Location of the launch.
     '''
-    importantTimes = [0, 60, 15*60, 3600, 6*3600, 24*3600, 2*24*3600]
+    importantTimes = [-math.inf, 0, 60, 5*60, 15*60, 3600, 6*3600, 24*3600, 2*24*3600]
 
-    def __init__(self, time, rocket, mission, provider, link=None, liveLink=None, location=None):
-        self.time = time
+    def __init__(self, t, rocket, mission, provider, link=None, liveLink=None, location=None):
+        self.time = t
         self.rocket = rocket
         self.mission = mission
         self.provider = provider
@@ -58,6 +60,12 @@ class Launch:
         b &= self.location == other.location
         return b
     
+    def __str__(self):
+        return '%s | %s (%s)' % (Launch.beautifyTime(self.time), self.rocket, self.mission)
+    
+    def __repr__(self):
+        return "Launch(%r, %r, %r, %r, link=%r, liveLink=%r, location=%r)" % (self.time, self.rocket, self.mission, self.provider, self.link, self.liveLink, self.location)
+
     def timeLeft(self):
         ''' @return (int): The amount of seconds until launch. '''
         return self.time - time.time()
@@ -71,9 +79,9 @@ class Launch:
         '''
         timeLeft = self.timeLeft()
         if sinceEpoch:
-            return [self.time - time for time in Launch.importantTimes if time < timeLeft][-1] # Time since epoch for important times still to come
+            return [self.time - t for t in Launch.importantTimes if t < timeLeft][-1] # Time since epoch for important times still to come
         else:
-            return [time for time in Launch.importantTimes if time < timeLeft][-1] # Next member of importantTimes that will be reached
+            return [t for t in Launch.importantTimes if t < timeLeft][-1] # Next member of importantTimes that will be reached
 
     
     @staticmethod
@@ -100,6 +108,15 @@ class Launch:
                 d = s//86400
                 return 'T%s%d day%s.' % (operator, d, '' if d==1 else 's')
     
+    @staticmethod
+    def beautifyTime(timeSinceEpoch):
+        '''
+            @param timeSinceEpoch (int): The time since the epoch.
+            @return (str): The beautified time string in the format 
+                'YYYY-MM-DD HH:MM:SS'
+        '''
+        return time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(timeSinceEpoch))
+
     @staticmethod
     def empty():
         '''
@@ -181,7 +198,7 @@ def checkWebsites():
         for nextLaunch in launchesDiv:
             try:
                 links = nextLaunch.find_all('a')
-                detailed_link = url + links[0]['href']
+                detailed_link = os.path.dirname(url) + links[0]['href']
                 liveLink = links[1]['href'] if len(links) > 1 else None
             
                 rocketAndMission = nextLaunch.find_all('h5')[0].text.strip().split(' | ') # The h5 in that div is '<rocket> | <mission>'
@@ -211,13 +228,7 @@ def checkWebsites():
     return allLaunches
 
 
-def beautifyTime(timeSinceEpoch):
-    '''
-        @param timeSinceEpoch (int): The time since the epoch.
-        @return (str): The beautified time string in the format 
-            'YYYY-MM-DD HH:MM:SS'
-    '''
-    return time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(timeSinceEpoch))
+
 
 
 def generateSummary(listOfLists):
@@ -235,8 +246,8 @@ def generateSummary(listOfLists):
     
     launches = []
     for launch in allLaunches:
-        # If the time of launch is math.inf, or a launch within a minute of this one has already been found, then ignore this one
-        if launch.time == math.inf or any(abs(l.time - launch.time) < maxTimeDifference for l in launches):
+        # If the time of launch is math.inf, or the launch has passed, or a launch within a minute of this one has already been found, then ignore this one
+        if launch.time == math.inf or launch.time < time.time() or any(abs(l.time - launch.time) < maxTimeDifference for l in launches):
             continue
         # Get all launches that are within a minute of this one
         similarLaunches = [l for l in allLaunches if abs(l.time - launch.time) < maxTimeDifference]
@@ -247,8 +258,8 @@ def generateSummary(listOfLists):
         # Summarize all these similar launches
         # Use difflib.get_close_matches to standardize the rocket
         ## Time of launch: the lowest of them all, as to not to miss it
-        time = min([l.time for l in similarLaunches])
-        time_i = [l.time for l in similarLaunches].index(time) # Number of site which reports the earliest liftoff time
+        t = min([l.time for l in similarLaunches])
+        time_i = [l.time for l in similarLaunches].index(t) # Number of site which reports the earliest liftoff time
         ## Rocket
         rocket = max([l.rocket for l in similarLaunches], key=len) # The longer the name of the rocket, the more specific, probably
         rocket_i = [l.rocket for l in similarLaunches].index(rocket) # Number of site which uses this rocket name
@@ -261,18 +272,24 @@ def generateSummary(listOfLists):
 
         ## LiveLink
         liveLink = None
-        for live in [l.liveLink for l in similarLaunches]: # Give preference to links to youtube
-            if live is not None:
-                if 'youtube' in live: # Can not check instantly for youtube because link can be None, so we need this nested if
+        for keyword in ['spacex', 'rocketlab', 'youtube']: # First look for the first element, then the next... (most specific first)
+            for live in [l.liveLink for l in similarLaunches if l.liveLink is not None]: # Give preference to links to known sites
+                if keyword in live:
                     liveLink = live
                     break
+            if liveLink is not None: # To escape this loop as well
+                break
+        if liveLink is None: # If no keywords were found
+            notNoneLinks = [l.liveLink for l in similarLaunches if l.liveLink is not None]
+            if any(notNoneLinks):
+                liveLink = notNoneLinks[0]
 
         ## Location
         location = [l.location for l in similarLaunches][time_i]
         if location is None: # If the location that site shows is None, then take another one that is not None, if possible
             location = next((l.location for l in similarLaunches if l.location is not None), None)
 
-        launches.append(Launch(time, rocket, mission, provider, link=link, liveLink=liveLink, location=location))
+        launches.append(Launch(t, rocket, mission, provider, link=link, liveLink=liveLink, location=location))
     return sorted(launches, key=lambda l:l.time)
 
 
@@ -287,10 +304,10 @@ def onAction(nid, action_id, launch):
     if action_id == 1: # More info
         webbrowser.open(launch.link)  # Go to example.com
     if action_id == 2:
-        webbrowser.open(launch.livelink)
+        webbrowser.open(launch.liveLink)
 
 
-def generateTemplate(launch, closestImportantTime=True):
+def notification(launch, closestImportantTime=True):
     '''
         @param launch (Launch): The launch which this notification is for.
         @param closestImportantTime (bool) [True]: If true, the header of the
@@ -298,14 +315,13 @@ def generateTemplate(launch, closestImportantTime=True):
             60 minutes...), if false, the real time to liftoff is taken.
             (This is to make sure the notification doesn't say T-23 hours just
             because the notification is one second late for T-24 hours.)
-        @return (zroya.Template): The template for the resulting notification.
     '''
     template = zroya.Template(zroya.TemplateType.ImageAndText4)
     if closestImportantTime:
-        template.setFirstLine('%s' % Launch.beautifySeconds(launch.nextImportantTime(sinceEpoch=False)))
+        template.setFirstLine('%s' % Launch.beautifySeconds([t for t in Launch.importantTimes if t > launch.time - time.time()][0]))
     else:
         template.setFirstLine('%s' % Launch.beautifySeconds(launch.time - time.time()))
-    template.setSecondLine('%s' % beautifyTime(launch.time))
+    template.setSecondLine('%s' % Launch.beautifyTime(launch.time))
     template.setThirdLine('%s (%s) | %s' % (launch.rocket, launch.provider, launch.mission))
     template.setAudio(audio=zroya.Audio.Reminder)
     template.setImage('data/rocket.png')
@@ -317,41 +333,42 @@ def generateTemplate(launch, closestImportantTime=True):
     if launch.liveLink is not None:
         template.addAction("Watch live")
     
-    return template
+    zroya.show(template, on_action=lambda nic, action_id: onAction(nic, action_id, launch))
 
 
 def main():
     allLaunches = generateSummary(checkWebsites())
 
     # On start of the program, display the next launch no matter what
-    zroya.show(generateTemplate(allLaunches[0], closestImportantTime=False), on_action=lambda nic, action_id: onAction(nic, action_id, allLaunches[0]))
+    notification(allLaunches[0], closestImportantTime=False)
 
     maximumRecheckTime = 1800
     while True:
         nextImportantLaunch = sorted(allLaunches, key=lambda l:l.nextImportantTime(sinceEpoch=True))[0]
+        print(sorted(allLaunches, key=lambda l:l.nextImportantTime(sinceEpoch=True))[:5])
 
         # Next important time
         nextImportantTimeEpoch = nextImportantLaunch.nextImportantTime(sinceEpoch=True)
         untilNextTime = nextImportantTimeEpoch - math.ceil(time.time())
+        nextRecheckTime = min(time.time() + maximumRecheckTime, nextImportantTimeEpoch) # Time since epoch until which we sleep
 
         # Wait appropriately
-        if untilNextTime < maximumRecheckTime:
-            while time.time() < nextImportantTimeEpoch: # To prevent unwanted waiting (because of time.sleep) after sleep mode etc.
-                time.sleep(1)
-        else:
-            nextRecheckTime = time.time() + maximumRecheckTime
-            while time.time() < nextRecheckTime: # To prevent unwanted waiting (because of time.sleep) after sleep mode etc.
-                time.sleep(1)
+        while time.time() < nextRecheckTime: # To prevent unwanted waiting (because of time.sleep) after sleep mode etc.
+            time.sleep(1)
 
         # Check whether the launch still exists, otherwise check the next
         # important time again (i.e., continue the next iteration of the loop)
         allLaunches = generateSummary(checkWebsites())
-        if untilNextTime < maximumRecheckTime: # If the next important time was within the maximumRecheckTime interval (same condition as before)
-            if nextImportantLaunch in allLaunches:
-                # Update with new information that isn't included in the Launch.__eq__ equality operator (e.g. liveLink)
-                nextImportantLaunch = [l for l in allLaunches if nextImportantLaunch == l][0]
-                zroya.show(generateTemplate(nextImportantLaunch), on_action=lambda nic, action_id: onAction(nic, action_id, nextImportantLaunch))
+        if nextImportantLaunch in allLaunches:
+            nextImportantLaunch = [l for l in allLaunches if nextImportantLaunch == l][0]
+            if abs(time.time() - nextRecheckTime) > 10: # True if the program slept too long for the nextImportantTime (e.g. screensaver etc.)
+                # Notification with current T-time if an importantTime was missed (and the launch hasn't happened yet, otherwise it's pretty useless to push notifications)
+                notification(nextImportantLaunch, closestImportantTime=False)
 
-
+            elif untilNextTime < maximumRecheckTime: # If the time.sleep was ended because an importantTime is now
+                # Notification as usual
+                notification(nextImportantLaunch)
+        
+        
 if __name__ == "__main__":
     main()
