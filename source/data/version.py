@@ -45,6 +45,6 @@ VSVersionInfo(
         StringStruct(u'ProductVersion', open('./changelog.txt', 'r', encoding='utf-8').read().split('\n')[0]),
         StringStruct(u'Debugger', u'0')])
       ]), 
-    VarFileInfo([VarStruct(u'Translation', [1033, 1200])])
+    VarFileInfo([VarStruct(u'Translation', [1033, 1200])]) # 1033 is US English, 1200 is Unicode
   ]
 )
