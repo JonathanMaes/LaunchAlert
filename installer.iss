@@ -4,7 +4,7 @@
 ; NOTE: The value of AppId uniquely identifies this application.
 ; Do not use the same AppId value in installers for other applications.
 ; (To generate a new GUID, click Tools | Generate GUID inside the IDE.)
-AppId={{9AE83186-BD26-4000-ACD6-9EF66D7D4CF0}
+AppId={{A792DC76-797B-4CDB-8AE3-7487B01189C0}
 AppName=Jonathan's Launch Alert
 AppVersion={#ApplicationVersion}
 VersionInfoVersion={#ApplicationVersion}

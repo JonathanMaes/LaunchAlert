@@ -4,3 +4,4 @@ source/__pycache__/
 source/build/
 source/dist/
 source/options.json
+upx-3.95-win64/

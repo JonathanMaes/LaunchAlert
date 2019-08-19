@@ -4,7 +4,7 @@
 # Stop using zroya and use an actual window without border (self.overrideredirect=True in tkinter App)
 # Collapse rocket and company names to closest result with difflib.get_close_matches()
 
-import difflib
+# import difflib
 import locale
 import math
 import os
@@ -26,7 +26,6 @@ if not status:
 
 from bs4 import BeautifulSoup
 from datetime import datetime
-from win10toast import ToastNotifier
 
 
 class Launch:
