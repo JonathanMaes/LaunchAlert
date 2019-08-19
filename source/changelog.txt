@@ -1,0 +1,12 @@
+1.0.0
+Windows notifications
++ Initial release
+
+Bugs format: 'B-<num><type>', with type:
+A: Minor inconvenience
+B: Major inconvenience
+C: Program crashes, or stops working
+D: Damage inflicted to the file system
+
+Known bugs:
+/
