@@ -343,6 +343,11 @@ def main():
 
     maximumRecheckTime = 1800
     while True:
+        if len(allLaunches) == 0: # No websites could be reached, or no launches are available
+            time.sleep(maximumRecheckTime) # Wait for the next iteration
+            allLaunches = generateSummary(checkWebsites()) # Recheck for allLaunches
+            continue
+
         nextImportantLaunch = sorted(allLaunches, key=lambda l:l.nextImportantTime(sinceEpoch=True))[0]
         print(sorted(allLaunches, key=lambda l:l.nextImportantTime(sinceEpoch=True))[:5])
 
