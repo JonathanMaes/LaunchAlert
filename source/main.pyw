@@ -344,9 +344,9 @@ def main():
     maximumRecheckTime = 1800
     while True:
         if len(allLaunches) == 0: # No websites could be reached, or no launches are available
-            time.sleep(maximumRecheckTime) # Wait for the next iteration
+            time.sleep(maximumRecheckTime) # Wait before rechecking the websites
             allLaunches = generateSummary(checkWebsites()) # Recheck for allLaunches
-            continue
+            continue # Continue with the next iteration of the loop
 
         nextImportantLaunch = sorted(allLaunches, key=lambda l:l.nextImportantTime(sinceEpoch=True))[0]
         print(sorted(allLaunches, key=lambda l:l.nextImportantTime(sinceEpoch=True))[:5])
@@ -362,11 +362,13 @@ def main():
 
         # Check whether the launch still exists, otherwise check the next
         # important time again (i.e., continue the next iteration of the loop)
+        if abs(time.time() - nextRecheckTime) > 10: # True if the program slept too long for the nextImportantTime (e.g. screensaver etc.)
+            time.sleep(60) # Connection to websites not possible instantly after coming out of sleep mode, try in one minute instead
         allLaunches = generateSummary(checkWebsites())
         if nextImportantLaunch in allLaunches:
             nextImportantLaunch = [l for l in allLaunches if nextImportantLaunch == l][0]
             if abs(time.time() - nextRecheckTime) > 10: # True if the program slept too long for the nextImportantTime (e.g. screensaver etc.)
-                # Notification with current T-time if an importantTime was missed (and the launch hasn't happened yet, otherwise it's pretty useless to push notifications)
+                # Notification with current T- time if an importantTime was missed (and the launch hasn't happened yet, otherwise it's pretty useless to push notifications)
                 notification(nextImportantLaunch, closestImportantTime=False)
 
             elif untilNextTime < maximumRecheckTime: # If the time.sleep was ended because an importantTime is now
