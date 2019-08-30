@@ -343,6 +343,7 @@ def main():
 
     maximumRecheckTime = 1800
     while True:
+        slept = False
         if len(allLaunches) == 0: # No websites could be reached, or no launches are available
             time.sleep(maximumRecheckTime) # Wait before rechecking the websites
             allLaunches = generateSummary(checkWebsites()) # Recheck for allLaunches
@@ -360,14 +361,17 @@ def main():
         while time.time() < nextRecheckTime: # To prevent unwanted waiting (because of time.sleep) after sleep mode etc.
             time.sleep(1)
 
+        if abs(time.time() - nextRecheckTime) > 10: # True if the program slept too long for the nextImportantTime (e.g. screensaver etc.)
+            slept = True
+            # Connection to websites not possible instantly after coming out of sleep mode, try in one minute instead
+            time.sleep(60) 
+        
         # Check whether the launch still exists, otherwise check the next
         # important time again (i.e., continue the next iteration of the loop)
-        if abs(time.time() - nextRecheckTime) > 10: # True if the program slept too long for the nextImportantTime (e.g. screensaver etc.)
-            time.sleep(60) # Connection to websites not possible instantly after coming out of sleep mode, try in one minute instead
         allLaunches = generateSummary(checkWebsites())
         if nextImportantLaunch in allLaunches:
             nextImportantLaunch = [l for l in allLaunches if nextImportantLaunch == l][0]
-            if abs(time.time() - nextRecheckTime) > 10: # True if the program slept too long for the nextImportantTime (e.g. screensaver etc.)
+            if slept:
                 # Notification with current T- time if an importantTime was missed (and the launch hasn't happened yet, otherwise it's pretty useless to push notifications)
                 notification(nextImportantLaunch, closestImportantTime=False)
 
