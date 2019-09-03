@@ -15,15 +15,6 @@ import traceback
 import urllib.request
 import webbrowser
 import zroya
-status = zroya.init(
-    app_name="Jonathan's Launch Notifications",
-    company_name="OrOrg Development inc.",
-    product_name="Launch Alert",
-    sub_product="core",
-    version="v1.0.0"
-)
-if not status:
-    reportError(fatal=True, message='Initialization failed.')
 
 from bs4 import BeautifulSoup
 from datetime import datetime
@@ -318,7 +309,7 @@ def onAction(nid, action_id, launch):
         Action 2: Watch live -> link to launch.livelink
     '''
     if action_id == 0: # Dismiss
-        return
+        zroya.hide(nid)
     if action_id == 1: # More info
         webbrowser.open(launch.link)  # Go to example.com
     if action_id == 2:
@@ -400,8 +391,25 @@ def main():
         
         
 if __name__ == "__main__":
+    with open('changelog.txt', 'r') as f:
+        version = f.readline()
+    
+    status = zroya.init(
+        app_name="Jonathan's Launch Notifications",
+        company_name="OrOrg Development inc.",
+        product_name="Launch Alert",
+        sub_product="core",
+        version=version
+    )
+    print('v%s' % version)
+    if not status:
+        reportError(fatal=True, message='Initialization failed.')
+
     try:
         main()
+    except KeyboardInterrupt:
+        # This means the program was stopped in the command line, so just stop without any weird windows opening
+        pass
     except:
         # Something horrible happened, otherwise we would already have caught the error
         reportError(fatal=True)

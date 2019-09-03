@@ -1,12 +1,23 @@
+1.0.1
+Improved errors
++ Errors will now show in a separate screen
++ 'Dismiss'-button now works as intended
+* Better, more complete, catching of errors
+B-A1: Notifications show every 30 minutes, instad of only when an important time has passed
+B-A2: Notifications always show when coming out of sleep mode, instead of only when an important time has passed
+B-A3: Notifications do not disappear when clicking 'Dismiss'
+B-B1: Can not retrieve websites instantly after coming out of sleep mode
+B-C1: Fatal error when no launches are known
+---
 1.0.0
 Windows notifications
 + Initial release
 
-Bugs format: 'B-<num><type>', with type:
+Bugs format: 'B-<type><num>', with type:
 A: Minor inconvenience
 B: Major inconvenience
 C: Program crashes, or stops working
-D: Damage inflicted to the file system
+D: Damage inflicted to the computer or file system
 
 Known bugs:
 /
