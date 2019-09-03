@@ -2,8 +2,9 @@
 
 # Ideas:
 # Stop using zroya and use an actual window without border (self.overrideredirect=True in tkinter App)
-# Collapse rocket and company names to closest result with difflib.get_close_matches()
+# Collapse launcher and company names to closest result with difflib.get_close_matches()
 
+import ctypes
 # import difflib
 import locale
 import math
@@ -22,7 +23,7 @@ status = zroya.init(
     version="v1.0.0"
 )
 if not status:
-    print("Initialization failed")
+    reportError(fatal=True, message='Initialization failed.')
 
 from bs4 import BeautifulSoup
 from datetime import datetime
@@ -32,7 +33,7 @@ class Launch:
     '''
         @param time (int): Time since epoch of expected liftoff time, math.inf
             if this time is not (yet) exactly known.
-        @param rocket (str): Name of the rocket.
+        @param launcher (str): Name of the launcher.
         @param mission (str): Name of the sattelite to be launched, or of the entire mission.
         @param provider (str): Name of the launch provider.
         @param link (str)[None]: Link to more detailed information.
@@ -41,9 +42,9 @@ class Launch:
     '''
     importantTimes = [-math.inf, 0, 60, 5*60, 15*60, 3600, 6*3600, 24*3600, 2*24*3600]
 
-    def __init__(self, t, rocket, mission, provider, link=None, liveLink=None, location=None):
+    def __init__(self, t, launcher, mission, provider, link=None, liveLink=None, location=None):
         self.time = t
-        self.rocket = rocket
+        self.launcher = launcher
         self.mission = mission
         self.provider = provider
         self.link = link
@@ -52,7 +53,7 @@ class Launch:
     
     def __eq__(self, other):
         b = self.time == other.time
-        b &= self.rocket == other.rocket
+        b &= self.launcher == other.launcher
         b &= self.mission == other.mission
         b &= self.provider == other.provider
         # Links may be different, allowing an update of these links.
@@ -60,10 +61,10 @@ class Launch:
         return b
     
     def __str__(self):
-        return '%s | %s (%s)' % (Launch.beautifyTime(self.time), self.rocket, self.mission)
+        return '%s | %s (%s)' % (Launch.beautifyTime(self.time), self.launcher, self.mission)
     
     def __repr__(self):
-        return "Launch(%r, %r, %r, %r, link=%r, liveLink=%r, location=%r)" % (self.time, self.rocket, self.mission, self.provider, self.link, self.liveLink, self.location)
+        return "Launch(%r, %r, %r, %r, link=%r, liveLink=%r, location=%r)" % (self.time, self.launcher, self.mission, self.provider, self.link, self.liveLink, self.location)
 
     def timeLeft(self):
         ''' @return (int): The amount of seconds until launch. '''
@@ -146,11 +147,16 @@ def checkWebsites():
     # First website
     url = 'http://rocketlaunch.live'
 
+    loadedWebsite = False
     try:
         with urllib.request.urlopen(url) as response:
             html_doc = response.read()
         soup = BeautifulSoup(html_doc, 'html.parser')
+        loadedWebsite = True
+    except:
+        reportError(fatal=False, message='%s: could not connect to website.' % url)
 
+    if loadedWebsite:
         launchesDiv = soup.find_all('div', class_='launch')
         launchesList = []
         for nextLaunch in launchesDiv:
@@ -171,27 +177,30 @@ def checkWebsites():
                 if timeSinceEpoch%86400 >= 86397: # This means the date is known up to month (97), quartal (98) or year (99)
                     timeSinceEpoch = math.inf # Do not use this to post notifications because the time is not known
 
-                rocket = nextLaunch.find_all('div', class_='rlt-vehicle')[0].find_all('a')[0].text
+                launcher = nextLaunch.find_all('div', class_='rlt-vehicle')[0].find_all('a')[0].text
                 provider = nextLaunch.find_all('div', class_='rlt-provider')[0].find_all('a')[0].text
                 location = nextLaunch.find_all('div', class_='rlt-location')[0].text.strip().replace('\n', ', ').replace('\t', '') # <div> has more text than just one line
                 
-                launchesList.append(Launch(timeSinceEpoch, rocket, mission, provider, link=detailed_link, liveLink=liveLink, location=location))
+                launchesList.append(Launch(timeSinceEpoch, launcher, mission, provider, link=detailed_link, liveLink=liveLink, location=location))
             except:
-                print('%s: Error while parsing HTML structure:\n%s' % (url, traceback.format_exc()))
+                reportError(fatal=False, message='%s: Error while parsing HTML structure.' % url)
 
         allLaunches.append(sorted(launchesList, key=lambda l:l.time))
-    except (urllib.error.HTTPError, urllib.error.URLError):
-        print('%s: could not connect to website.' % (url))
 
 
     # Second website
     url = 'https://nextspaceflight.com/launches'
 
+    loadedWebsite = False
     try:
         with urllib.request.urlopen(url) as response:
             html_doc = response.read()
         soup = BeautifulSoup(html_doc, 'html.parser')
+        loadedWebsite = True
+    except:
+        reportError(fatal=False, message='%s: could not connect to website.' % url)
 
+    if loadedWebsite:
         launchesDiv = soup.find_all('div', class_='demo-card-square')
         launchesList = []
         for nextLaunch in launchesDiv:
@@ -200,9 +209,9 @@ def checkWebsites():
                 detailed_link = os.path.dirname(url) + links[0]['href']
                 liveLink = links[1]['href'] if len(links) > 1 else None
             
-                rocketAndMission = nextLaunch.find_all('h5')[0].text.strip().split(' | ') # The h5 in that div is '<rocket> | <mission>'
-                rocket = rocketAndMission[0]
-                mission = rocketAndMission[1]
+                launcherAndMission = nextLaunch.find_all('h5')[0].text.strip().split(' | ') # The h5 in that div is '<launcher> | <mission>'
+                launcher = launcherAndMission[0]
+                mission = launcherAndMission[1]
                 provider = nextLaunch.find_all('div', class_='mdl-card__title-text')[0].text.strip()
 
                 details = nextLaunch.find_all('div', class_='mdl-card__supporting-text')[0].text.strip() # Div with this class contains 'time <br/> location'
@@ -216,18 +225,28 @@ def checkWebsites():
                     epoch = datetime(1970, 1, 1)
                     timeSinceEpoch = int((datetime.strptime(timeString, p) - epoch).total_seconds())
                 
-                launchesList.append(Launch(timeSinceEpoch, rocket, mission, provider, link=detailed_link, liveLink=liveLink, location=location))
+                launchesList.append(Launch(timeSinceEpoch, launcher, mission, provider, link=detailed_link, liveLink=liveLink, location=location))
             except:
-                print('%s: Error while parsing HTML structure:\n%s' % (url, traceback.format_exc()))
+                reportError(fatal=False, message='%s: Error while parsing HTML structure.' % url)
             
         allLaunches.append(sorted(launchesList, key=lambda l:l.time))
-    except (urllib.error.HTTPError, urllib.error.URLError):
-        print('%s: could not connect to website.' % (url))
 
     return allLaunches
 
 
+def reportError(fatal=False, message=''):
+    exc = '\t' + traceback.format_exc().replace('\n', '\n\t')
+    message = '\n%s' % message
 
+    if fatal:
+        info = u"A fatal error occured:%s\n\n%s\n\nYou have to manually restart the program." % (message, exc)
+    else:
+        info = u"An non-fatal error occured:%s\n\n%s\n\nThe program has dealt with the error and continues to run correctly." % (message, exc)
+
+    ctypes.windll.user32.MessageBoxW(0, info, u"Jonathan's Launch Notifications", 0)
+
+    if fatal:
+        quit()
 
 
 def generateSummary(listOfLists):
@@ -255,17 +274,17 @@ def generateSummary(listOfLists):
             continue
         
         # Summarize all these similar launches
-        # Use difflib.get_close_matches to standardize the rocket
+        # Use difflib.get_close_matches to standardize the launcher
         ## Time of launch: the lowest of them all, as to not to miss it
         t = min([l.time for l in similarLaunches])
         time_i = [l.time for l in similarLaunches].index(t) # Number of site which reports the earliest liftoff time
-        ## Rocket
-        rocket = max([l.rocket for l in similarLaunches], key=len) # The longer the name of the rocket, the more specific, probably
-        rocket_i = [l.rocket for l in similarLaunches].index(rocket) # Number of site which uses this rocket name
+        ## Launcher
+        launcher = max([l.launcher for l in similarLaunches], key=len) # The longer the name of the launcher, the more specific, probably
+        launcher_i = [l.launcher for l in similarLaunches].index(launcher) # Number of site which uses this launcher name
         ## Mission
-        mission = [l.mission for l in similarLaunches][rocket_i]
+        mission = [l.mission for l in similarLaunches][launcher_i]
         ## Provider
-        provider = [l.provider for l in similarLaunches][rocket_i]
+        provider = [l.provider for l in similarLaunches][launcher_i]
         ## Link
         link = [l.link for l in similarLaunches][time_i] # Go to the website that reports the earliest liftoff time
 
@@ -288,7 +307,7 @@ def generateSummary(listOfLists):
         if location is None: # If the location that site shows is None, then take another one that is not None, if possible
             location = next((l.location for l in similarLaunches if l.location is not None), None)
 
-        launches.append(Launch(t, rocket, mission, provider, link=link, liveLink=liveLink, location=location))
+        launches.append(Launch(t, launcher, mission, provider, link=link, liveLink=liveLink, location=location))
     return sorted(launches, key=lambda l:l.time)
 
 
@@ -321,7 +340,7 @@ def notification(launch, closestImportantTime=True):
     else:
         template.setFirstLine('%s' % Launch.beautifySeconds(launch.time - time.time()))
     template.setSecondLine('%s' % Launch.beautifyTime(launch.time))
-    template.setThirdLine('%s (%s) | %s' % (launch.rocket, launch.provider, launch.mission))
+    template.setThirdLine('%s (%s) | %s' % (launch.launcher, launch.provider, launch.mission))
     template.setAudio(audio=zroya.Audio.Reminder)
     template.setImage('data/rocket.png')
     if launch.location is not None:
@@ -371,7 +390,7 @@ def main():
         allLaunches = generateSummary(checkWebsites())
         if nextImportantLaunch in allLaunches:
             nextImportantLaunch = [l for l in allLaunches if nextImportantLaunch == l][0]
-            if slept:
+            if slept and time.time() > nextImportantTimeEpoch:
                 # Notification with current T- time if an importantTime was missed (and the launch hasn't happened yet, otherwise it's pretty useless to push notifications)
                 notification(nextImportantLaunch, closestImportantTime=False)
 
@@ -381,4 +400,8 @@ def main():
         
         
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    except:
+        # Something horrible happened, otherwise we would already have caught the error
+        reportError(fatal=True)
