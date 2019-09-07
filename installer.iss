@@ -23,6 +23,7 @@ Compression=lzma
 SolidCompression=yes       
 DisableDirPage=auto
 DisableProgramGroupPage=auto
+PrivilegesRequired=admin
 
 [Languages]
 Name: "english"; MessagesFile: "compiler:Default.isl"
@@ -38,6 +39,7 @@ Source: "dist\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createal
 [Icons]
 Name: "{group}\Jonathan's Launch Alert"; Filename: "{app}\main.exe"
 Name: "{commondesktop}\Jonathan's Launch Alert"; Filename: "{app}\main.exe"; Tasks: desktopicon
+Name: "{commonstartup}\Jonathan's Launch Alert"; Filename: "{app}\main.exe"
 
 [Run]
 Filename: "{app}\main.exe"; Description: "{cm:LaunchProgram,Jonathan's Launch Alert}"; Flags: nowait postinstall skipifsilent
