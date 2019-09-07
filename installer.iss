@@ -24,6 +24,7 @@ SolidCompression=yes
 DisableDirPage=auto
 DisableProgramGroupPage=auto
 PrivilegesRequired=admin
+CloseApplications=force
 
 [Languages]
 Name: "english"; MessagesFile: "compiler:Default.isl"
