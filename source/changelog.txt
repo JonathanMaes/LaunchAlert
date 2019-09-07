@@ -1,3 +1,7 @@
+1.0.2
+Start at startup
++ The installer will now configure the program to run at startup
+---
 1.0.1
 Improved errors
 + Errors will now show in a separate screen

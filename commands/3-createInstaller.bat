@@ -10,5 +10,9 @@ if errorlevel 1 (
 )
 cd installer
 echo f | XCOPY "JonathansLaunchAlert_installer_*.exe" "JonathansLaunchAlert_installer.exe" /C /Y /K
+
+set /p var=<"../source/changelog.txt"
+echo %var% > "../installer/version.txt"
+
 echo Finished.
 pause >nul
