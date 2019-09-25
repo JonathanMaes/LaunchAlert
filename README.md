@@ -1,4 +1,4 @@
-### [**CLICK HERE TO INSTALL**](../master/installer/JonathansLaunchAlert_installer.exe?raw=true)
+### [**CLICK HERE TO INSTALL**](../master/installer/JonathansLaunchAlert_installer.exe?raw=true) **(ONLY FOR WINDOWS 10)**
 
 # Jonathan's Launch Alert
 This is a launch notification program.
