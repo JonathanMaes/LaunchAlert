@@ -92,6 +92,7 @@ PSLV-XL
 Rokot
 Safir
 Saturn V
+Sea Dragon
 Shavit
 SLS
 SLS Block 1
@@ -106,6 +107,8 @@ Soyuz-2-1v
 Soyuz-5
 SS-520
 SSLV
+Starship
+Starship/SH
 Starship/Super Heavy
 Strela
 Titan II
