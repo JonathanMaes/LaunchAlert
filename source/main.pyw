@@ -351,11 +351,14 @@ def notification(launch, closestImportantTime=True):
 
 def main():
     allLaunches = generateSummary(checkWebsites())
+    maximumRecheckTime = 1800
 
     # On start of the program, display the next launch no matter what
+    while len(allLaunches) == 0: # Unless there is no internet connection
+        time.sleep(maximumRecheckTime)
+        allLaunches = generateSummary(checkWebsites())
     notification(allLaunches[0], closestImportantTime=False)
 
-    maximumRecheckTime = 1800
     while True:
         slept = False
         if len(allLaunches) == 0: # No websites could be reached, or no launches are available
