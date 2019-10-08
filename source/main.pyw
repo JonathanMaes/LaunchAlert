@@ -145,7 +145,7 @@ def checkWebsites():
         soup = BeautifulSoup(html_doc, 'html.parser')
         loadedWebsite = True
     except:
-        reportError(fatal=False, message='%s: could not connect to website.' % url)
+        reportError(fatal=False, notify=False, message='%s: could not connect to website.' % url)
 
     if loadedWebsite:
         launchesDiv = soup.find_all('div', class_='launch')
@@ -174,7 +174,7 @@ def checkWebsites():
                 
                 launchesList.append(Launch(timeSinceEpoch, launcher, mission, provider, link=detailed_link, liveLink=liveLink, location=location))
             except:
-                reportError(fatal=False, message='%s: Error while parsing HTML structure.' % url)
+                reportError(fatal=False, notify=True, message='%s: Error while parsing HTML structure.' % url)
 
         allLaunches.append(sorted(launchesList, key=lambda l:l.time))
 
@@ -189,7 +189,7 @@ def checkWebsites():
         soup = BeautifulSoup(html_doc, 'html.parser')
         loadedWebsite = True
     except:
-        reportError(fatal=False, message='%s: could not connect to website.' % url)
+        reportError(fatal=False, notify=False, message='%s: could not connect to website.' % url)
 
     if loadedWebsite:
         launchesDiv = soup.find_all('div', class_='demo-card-square')
@@ -218,14 +218,17 @@ def checkWebsites():
                 
                 launchesList.append(Launch(timeSinceEpoch, launcher, mission, provider, link=detailed_link, liveLink=liveLink, location=location))
             except:
-                reportError(fatal=False, message='%s: Error while parsing HTML structure.' % url)
+                reportError(fatal=False, notify=True, message='%s: Error while parsing HTML structure.' % url)
             
         allLaunches.append(sorted(launchesList, key=lambda l:l.time))
 
     return allLaunches
 
 
-def reportError(fatal=False, message=''):
+def reportError(fatal=False, notify=None, message=''):
+    if notify is None:
+        notify = fatal
+
     exc = '\t' + traceback.format_exc().replace('\n', '\n\t')
     message = '\n%s' % message
 
@@ -233,8 +236,9 @@ def reportError(fatal=False, message=''):
         info = u"A fatal error occured:%s\n\n%s\n\nYou have to manually restart the program." % (message, exc)
     else:
         info = u"An non-fatal error occured:%s\n\n%s\n\nThe program has dealt with the error and continues to run correctly." % (message, exc)
-
-    ctypes.windll.user32.MessageBoxW(0, info, u"Jonathan's Launch Notifications", 0)
+    
+    if notify:
+        ctypes.windll.user32.MessageBoxW(0, info, u"Jonathan's Launch Notifications", 0)
 
     if fatal:
         quit()
@@ -403,13 +407,14 @@ if __name__ == "__main__":
     )
     print('v%s' % version)
     if not status:
-        reportError(fatal=True, message='Initialization failed.')
+        reportError(fatal=True, notify=True, message='Initialization failed.')
 
     try:
         main()
     except KeyboardInterrupt:
-        # This means the program was stopped in the command line, so just stop without any weird windows opening
+        # This means the program was stopped in the command line (using ctrl+C or similar),
+        # so just stop without any weird windows opening
         pass
     except:
         # Something horrible happened, otherwise we would already have caught the error
-        reportError(fatal=True)
+        reportError(fatal=True, notify=True)
