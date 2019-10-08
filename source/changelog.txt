@@ -1,3 +1,8 @@
+1.0.3
+Improved error handling
+* Added option to error call whether or not to notify the user of the error
+- Error due to lack of internet or nonresponding server will no longer appear
+---
 1.0.2
 Start at startup
 + The installer will now configure the program to run at startup
