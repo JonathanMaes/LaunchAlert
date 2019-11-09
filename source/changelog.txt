@@ -1,3 +1,7 @@
+1.0.4
+Auto-updates
++ The program will now automatically check for updates on the remote server (GitHub)
+---
 1.0.3
 Improved error handling
 * Added option to error call whether or not to notify the user of the error
