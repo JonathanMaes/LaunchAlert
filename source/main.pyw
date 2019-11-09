@@ -1,8 +1,12 @@
 # -*- coding: utf-8 -*-
 
 # Ideas:
-# Stop using zroya and use an actual window without border (self.overrideredirect=True in tkinter App)
-# Collapse launcher and company names to closest result with difflib.get_close_matches()
+# - Perhaps stop using the error-prone zroya module and use an actual window
+#   without border (self.overrideredirect=True in tkinter App)
+# - Collapse launcher and company names to closest result with
+#   difflib.get_close_matches() and show custom rocket icon for known rockets
+
+import constants as const
 
 import ctypes
 # import difflib
@@ -18,6 +22,7 @@ import zroya
 
 from bs4 import BeautifulSoup
 from datetime import datetime
+from packaging import version as pkg_version
 
 
 class Launch:
@@ -238,7 +243,7 @@ def reportError(fatal=False, notify=None, message=''):
         info = u"An non-fatal error occured:%s\n\n%s\n\nThe program has dealt with the error and continues to run correctly." % (message, exc)
     
     if notify:
-        ctypes.windll.user32.MessageBoxW(0, info, u"Jonathan's Launch Notifications", 0)
+        ctypes.windll.user32.MessageBoxW(0, info, const.PROGRAMNAME, 0)
 
     if fatal:
         quit()
@@ -349,7 +354,39 @@ def notification(launch, closestImportantTime=True):
     zroya.show(template, on_action=lambda nic, action_id: onAction(nic, action_id, launch))
 
 
+def checkForUpdates(versionFile=const.REMOTE_FILENAME_CHANGELOG):
+    '''
+        @param versionFile (string): The URL where the production changelog is located.
+        @return (bool): Whether a new update will be installed or not.
+    '''
+    # Read the file, and extract the remote version number, which is located at the top of versionFile
+    try:
+        with urllib.request.urlopen(versionFile) as changelog:
+            version_remote = changelog.readline().strip().decode("utf-8")
+        with open('changelog.txt', 'r') as f:
+            version_local = f.readline().strip()
+        
+        shouldUpdate = pkg_version.parse(version_local) < pkg_version.parse(version_remote)
+        if shouldUpdate:
+            text = "An update for %s has been found.\nDo you wish to install it now?" % const.PROGRAMNAME
+            title = "%s Updater" % const.PROGRAMNAME
+            result = ctypes.windll.user32.MessageBoxW(0, text, title, 4) # 4: 'Yes'/'No'-messagebox
+            if result == 6: # 'Yes'
+                webbrowser.open(const.REMOTE_FILENAME_INSTALLER)
+                quit()
+                return True
+            elif result == 7: # 'No'
+                return False
+            else:
+                reportError(fatal=False, notify=True, message='Unknown return code in the updater messagebox.')
+                return False
+    except:
+        reportError(fatal=False, notify=False, message='%s: could not connect to update-server.' % versionFile)
+        return False
+
+
 def main():
+    checkForUpdates()
     allLaunches = generateSummary(checkWebsites())
     maximumRecheckTime = 1800
 
@@ -417,6 +454,9 @@ if __name__ == "__main__":
     except KeyboardInterrupt:
         # This means the program was stopped in the command line (using ctrl+C or similar),
         # so just stop without any weird windows opening
+        pass
+    except SystemExit:
+        # The exit was intended in the source code itself (e.g. quit() or sys.exit())
         pass
     except:
         # Something horrible happened, otherwise we would already have caught the error
