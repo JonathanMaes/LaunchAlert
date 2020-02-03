@@ -6,23 +6,22 @@
 # - Collapse launcher and company names to closest result with
 #   difflib.get_close_matches() and show custom rocket icon for known rockets
 
-import constants as const
+# Local imports
+import programenv as pe
 
-import ctypes
+# General imports
 # import difflib
 import locale
 import math
 import os
 import time
-import tkinter as tk
-import traceback
+# import tkinter as tk
 import urllib.request
 import webbrowser
 import zroya
 
 from bs4 import BeautifulSoup
 from datetime import datetime
-from packaging import version as pkg_version
 
 
 class Launch:
@@ -150,7 +149,7 @@ def checkWebsites():
         soup = BeautifulSoup(html_doc, 'html.parser')
         loadedWebsite = True
     except:
-        reportError(fatal=False, notify=False, message='%s: could not connect to website.' % url)
+        pe.reportError(fatal=False, notify=False, message='%s: could not connect to website.' % url)
 
     if loadedWebsite:
         launchesDiv = soup.find_all('div', class_='launch')
@@ -179,7 +178,7 @@ def checkWebsites():
                 
                 launchesList.append(Launch(timeSinceEpoch, launcher, mission, provider, link=detailed_link, liveLink=liveLink, location=location))
             except:
-                reportError(fatal=False, notify=True, message='%s: Error while parsing HTML structure.' % url)
+                pe.reportError(fatal=False, notify=True, message='%s: Error while parsing HTML structure.' % url)
 
         allLaunches.append(sorted(launchesList, key=lambda l:l.time))
 
@@ -194,7 +193,7 @@ def checkWebsites():
         soup = BeautifulSoup(html_doc, 'html.parser')
         loadedWebsite = True
     except:
-        reportError(fatal=False, notify=False, message='%s: could not connect to website.' % url)
+        pe.reportError(fatal=False, notify=False, message='%s: could not connect to website.' % url)
 
     if loadedWebsite:
         launchesDiv = soup.find_all('div', class_='demo-card-square')
@@ -223,30 +222,11 @@ def checkWebsites():
                 
                 launchesList.append(Launch(timeSinceEpoch, launcher, mission, provider, link=detailed_link, liveLink=liveLink, location=location))
             except:
-                reportError(fatal=False, notify=True, message='%s: Error while parsing HTML structure.' % url)
+                pe.reportError(fatal=False, notify=True, message='%s: Error while parsing HTML structure.' % url)
             
         allLaunches.append(sorted(launchesList, key=lambda l:l.time))
 
     return allLaunches
-
-
-def reportError(fatal=False, notify=None, message=''):
-    if notify is None:
-        notify = fatal
-
-    exc = '\t' + traceback.format_exc().replace('\n', '\n\t')
-    message = '\n%s' % message
-
-    if fatal:
-        info = u"A fatal error occured:%s\n\n%s\n\nYou have to manually restart the program." % (message, exc)
-    else:
-        info = u"An non-fatal error occured:%s\n\n%s\n\nThe program has dealt with the error and continues to run correctly." % (message, exc)
-    
-    if notify:
-        ctypes.windll.user32.MessageBoxW(0, info, const.PROGRAMNAME, 0)
-
-    if fatal:
-        quit()
 
 
 def generateSummary(listOfLists):
@@ -354,39 +334,7 @@ def notification(launch, closestImportantTime=True):
     zroya.show(template, on_action=lambda nic, action_id: onAction(nic, action_id, launch))
 
 
-def checkForUpdates(versionFile=const.REMOTE_FILENAME_CHANGELOG):
-    '''
-        @param versionFile (string): The URL where the production changelog is located.
-        @return (bool): Whether a new update will be installed or not.
-    '''
-    # Read the file, and extract the remote version number, which is located at the top of versionFile
-    try:
-        with urllib.request.urlopen(versionFile) as changelog:
-            version_remote = changelog.readline().strip().decode("utf-8")
-        with open('changelog.txt', 'r') as f:
-            version_local = f.readline().strip()
-        
-        shouldUpdate = pkg_version.parse(version_local) < pkg_version.parse(version_remote)
-        if shouldUpdate:
-            text = "An update for %s has been found.\nDo you wish to install it now?" % const.PROGRAMNAME
-            title = "%s Updater" % const.PROGRAMNAME
-            result = ctypes.windll.user32.MessageBoxW(0, text, title, 4) # 4: 'Yes'/'No'-messagebox
-            if result == 6: # 'Yes'
-                webbrowser.open(const.REMOTE_FILENAME_INSTALLER)
-                quit()
-                return True
-            elif result == 7: # 'No'
-                return False
-            else:
-                reportError(fatal=False, notify=True, message='Unknown return code in the updater messagebox.')
-                return False
-    except:
-        reportError(fatal=False, notify=False, message='%s: could not connect to update-server.' % versionFile)
-        return False
-
-
 def main():
-    checkForUpdates()
     allLaunches = generateSummary(checkWebsites())
     maximumRecheckTime = 1800
 
@@ -435,19 +383,21 @@ def main():
         
         
 if __name__ == "__main__":
+    pe.checkForUpdates()
+
     with open('changelog.txt', 'r') as f:
         version = f.readline()
     
     status = zroya.init(
-        app_name="Jonathan's Launch Notifications",
-        company_name="OrOrg Development inc.",
+        app_name=pe.PROGRAMNAME,
+        company_name=pe.COMPANYNAME,
         product_name="Launch Alert",
         sub_product="core",
         version=version
     )
     print('v%s' % version)
     if not status:
-        reportError(fatal=True, notify=True, message='Initialization failed.')
+        pe.reportError(fatal=True, notify=True, message='Initialization failed.')
 
     try:
         main()
@@ -460,4 +410,4 @@ if __name__ == "__main__":
         pass
     except:
         # Something horrible happened, otherwise we would already have caught the error
-        reportError(fatal=True, notify=True)
+        pe.reportError(fatal=True, notify=True)
