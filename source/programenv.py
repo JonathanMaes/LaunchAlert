@@ -20,9 +20,9 @@ def reportError(fatal=False, notify=None, message=''):
     message = '\n%s' % message
 
     if fatal:
-        info = u"A fatal error occured:%s\n\n%s\n\nYou have to manually restart the program." % (message, exc)
+        info = u"A fatal error occured: %s\n\n%s\n\nYou have to manually restart the program." % (message, exc)
     else:
-        info = u"An non-fatal error occured:%s\n\n%s\n\nThe program has dealt with the error and continues to run correctly." % (message, exc)
+        info = u"An non-fatal error occured: %s\n\n%s\n\nThe program has dealt with the error and continues to run correctly." % (message, exc)
     
     if notify:
         ctypes.windll.user32.MessageBoxW(0, info, PROGRAMNAME, 0)

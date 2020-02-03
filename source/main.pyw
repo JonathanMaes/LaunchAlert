@@ -385,9 +385,9 @@ def main():
 if __name__ == "__main__":
     pe.checkForUpdates()
 
+    # Zroya
     with open('changelog.txt', 'r') as f:
         version = f.readline()
-    
     status = zroya.init(
         app_name=pe.PROGRAMNAME,
         company_name=pe.COMPANYNAME,
@@ -399,6 +399,7 @@ if __name__ == "__main__":
     if not status:
         pe.reportError(fatal=True, notify=True, message='Initialization failed.')
 
+    # Main function, with exceptions
     try:
         main()
     except KeyboardInterrupt:
