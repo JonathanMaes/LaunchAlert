@@ -9,6 +9,7 @@ Ariane 5 ES
 Ariane 6
 Ariane 6 A62
 Ariane 6 A64
+Astra
 Atlas V 401
 Atlas V 402
 Atlas V 411
@@ -47,6 +48,12 @@ H-IIA 202
 H-IIA 204
 H-IIB
 H3
+H3-30S
+H3-30L
+H3-22S
+H3-22L
+H3-24S
+H3-24L
 Haas
 Hyperbola-1
 Hyperbola-2
@@ -71,6 +78,7 @@ Long March 7
 Long March 8
 Long March 9
 Long March 11
+Millenium Falcon
 Minotaur I
 Minotaur IV
 Minotaur V
@@ -89,6 +97,7 @@ PSLV-CA
 PSLV-DL
 PSLV-QL
 PSLV-XL
+Ravn
 Rokot
 Safir
 Saturn V
