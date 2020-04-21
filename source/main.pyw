@@ -14,6 +14,7 @@ import programenv as pe
 import locale
 import math
 import os
+import sys
 import time
 # import tkinter as tk
 import urllib.request
@@ -383,7 +384,10 @@ def main():
         
         
 if __name__ == "__main__":
-    pe.checkForUpdates()
+    pe.checkIfRunning()
+    willUpdate = pe.checkForUpdates()
+    if willUpdate:
+        sys.exit()
 
     # Zroya
     with open('changelog.txt', 'r') as f:

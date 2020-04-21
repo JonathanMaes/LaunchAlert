@@ -1,4 +1,4 @@
-#define ApplicationVersion GetFileVersion('dist/main.exe')
+#define ApplicationVersion GetFileVersion('dist/jonathanslaunchnotifications.exe')
 
 [Setup]
 ; NOTE: The value of AppId uniquely identifies this application.
@@ -33,17 +33,17 @@ Name: "english"; MessagesFile: "compiler:Default.isl"
 Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked
 
 [Files]
-Source: "dist\main.exe"; DestDir: "{app}"; Flags: ignoreversion
+Source: "dist\jonathanslaunchnotifications.exe"; DestDir: "{app}"; Flags: ignoreversion
 Source: "dist\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files
 
 [Icons]
-Name: "{group}\Jonathan's Launch Alert"; Filename: "{app}\main.exe"
-Name: "{commondesktop}\Jonathan's Launch Alert"; Filename: "{app}\main.exe"; Tasks: desktopicon
-Name: "{commonstartup}\Jonathan's Launch Alert"; Filename: "{app}\main.exe"
+Name: "{group}\Jonathan's Launch Alert"; Filename: "{app}\jonathanslaunchnotifications.exe"
+Name: "{commondesktop}\Jonathan's Launch Alert"; Filename: "{app}\jonathanslaunchnotifications.exe"; Tasks: desktopicon
+Name: "{commonstartup}\Jonathan's Launch Alert"; Filename: "{app}\jonathanslaunchnotifications.exe"
 
 [Run]
-Filename: "{app}\main.exe"; Description: "{cm:LaunchProgram,Jonathan's Launch Alert}"; Flags: nowait postinstall skipifsilent
+Filename: "{app}\jonathanslaunchnotifications.exe"; Description: "{cm:LaunchProgram,Jonathan's Launch Alert}"; Flags: nowait postinstall skipifsilent
 
 ;[UninstallDelete]
 ;Type: files; Name: "{userappdata}\Jonathan's Launch Alert\options.json"

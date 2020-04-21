@@ -1,3 +1,8 @@
+1.0.5
+One instance at a time
+* When an instance of the program is already running, the newly launched instance will terminate it first
+* Hopefully auto-update will now actually work
+---
 1.0.4
 Auto-updates
 + The program will now automatically check for updates on the remote server (GitHub)

@@ -2,6 +2,7 @@
 
 block_cipher = None
 
+PROGRAMNAME = 'jonathanslaunchnotifications'
 
 a = Analysis(['main.pyw'],
              pathex=['..'],
@@ -21,7 +22,7 @@ pyz = PYZ(a.pure, a.zipped_data,
 exe = EXE(pyz,
           a.scripts,
           exclude_binaries=True,
-          name='main',
+          name=PROGRAMNAME,
           debug=False,
           strip=False,
           upx=True,
