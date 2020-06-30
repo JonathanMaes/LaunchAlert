@@ -40,7 +40,7 @@ Source: "dist\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createal
 [Icons]
 Name: "{group}\Jonathan's Launch Alert"; Filename: "{app}\jonathanslaunchnotifications.exe"
 Name: "{commondesktop}\Jonathan's Launch Alert"; Filename: "{app}\jonathanslaunchnotifications.exe"; Tasks: desktopicon
-Name: "{commonstartup}\Jonathan's Launch Alert"; Filename: "{app}\jonathanslaunchnotifications.exe"; Parameters: "goeiemorgen"
+Name: "{commonstartup}\Jonathan's Launch Alert"; Filename: "{app}\jonathanslaunchnotifications.exe"; Parameters: "noGUI"
 
 [Run]
 Filename: "{app}\jonathanslaunchnotifications.exe"; Description: "{cm:LaunchProgram,Jonathan's Launch Alert}"; Flags: nowait postinstall skipifsilent
