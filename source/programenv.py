@@ -30,6 +30,8 @@ def reportError(fatal=False, notify=None, message=''):
     
     if notify:
         ctypes.windll.user32.MessageBoxW(0, info, PROGRAMNAME, 0)
+    else:
+        print(info)
 
     if fatal:
         sys.exit()
