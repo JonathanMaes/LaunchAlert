@@ -1,0 +1,165 @@
+Name,Family,Status,Company,Country
+Angara,Angara,Active,Khrunichev,Russia
+Angara 1.2,Angara,Active,Khrunichev,Russia
+Angara A5,Angara,Active,Khrunichev,Russia
+Antares 230+,Antares,Active,Northrop Grumman,USA
+Ariane 5,Ariane 5,Active,Arianespace,Europe
+Ariane 5 ECA,Ariane 5,Active,Arianespace,Europe
+Ariane 5 ES,Ariane 5,Retired,Arianespace,Europe
+Ariane 6,Ariane 6,Development,Arianespace,Europe
+Ariane 6 A62,Ariane 6,Development,Arianespace,Europe
+Ariane 6 A64,Ariane 6,Development,Arianespace,Europe
+Atlas V 401,Atlas V,Active,ULA,USA
+Atlas V 402,Atlas V,Active,ULA,USA
+Atlas V 411,Atlas V,Active,ULA,USA
+Atlas V 412,Atlas V,Active,ULA,USA
+Atlas V 421,Atlas V,Active,ULA,USA
+Atlas V 422,Atlas V,Active,ULA,USA
+Atlas V 431,Atlas V,Active,ULA,USA
+Atlas V 432,Atlas V,Active,ULA,USA
+Atlas V 501,Atlas V,Active,ULA,USA
+Atlas V 502,Atlas V,Active,ULA,USA
+Atlas V 521,Atlas V,Active,ULA,USA
+Atlas V 522,Atlas V,Active,ULA,USA
+Atlas V 531,Atlas V,Active,ULA,USA
+Atlas V 532,Atlas V,Active,ULA,USA
+Atlas V 541,Atlas V,Active,ULA,USA
+Atlas V 542,Atlas V,Active,ULA,USA
+Atlas V 551,Atlas V,Active,ULA,USA
+Atlas V 552,Atlas V,Active,ULA,USA
+Atlas V N22,Atlas V,Active,ULA,USA
+Black Arrow,Black Arrow,Retired,Royal Aircraft Establishment,UK
+Bloostar,Bloostar,Development,Zero 2 Infinity,Spain
+Ceres-1,Ceres-1,Development,Galactic Energy,China
+Cyclone-4M,Cyclone-4M,Development,Yuzhnoye Design Bureau,Ukraine
+Delta IV Heavy,Delta IV,Active,ULA,USA
+Delta IV Medium,Delta IV,Retired,ULA,USA
+Electron,Electron,Active,Rocket Lab,USA
+Energia,Energia,Retired,NPO Energomash,USSR
+Epsilon,Epsilon,Active,JAXA,Japan
+Eris,Eris,Development,Gilmour Space Technologies,Australia
+Falcon 1,Falcon 1,Retired,SpaceX,USA
+Falcon 9,Falcon 9,Active,SpaceX,USA
+Falcon 9 Block 5,Falcon 9,Active,SpaceX,USA
+Falcon Heavy,Falcon Heavy,Active,SpaceX,USA
+Firefly Alpha,Firefly Alpha,Development,Firefly Aerospace,USA
+Firefly Beta,Firefly Beta,Development,Firefly Aerospace,USA
+GSLV Mk II,GSLV Mk II,Active,ISRO,India
+GSLV Mk III,GSLV Mk III,Active,ISRO,India
+H3,H3,Development,MHI,Japan
+H3-22L,H3,Development,MHI,Japan
+H3-22S,H3,Development,MHI,Japan
+H3-24L,H3,Development,MHI,Japan
+H3-24S,H3,Development,MHI,Japan
+H3-30L,H3,Development,MHI,Japan
+H3-30S,H3,Development,MHI,Japan
+Haas,Haas,Development,ARCAspace,USA
+H-IIA,H-IIA,Active,MHI,Japan
+H-IIA 202,H-IIA,Active,MHI,Japan
+H-IIA 204,H-IIA,Active,MHI,Japan
+H-IIB,H-IIB,Retired,MHI,Japan
+Hyperbola-1,Hyperbola-1,Active,i-Space,China
+Hyperbola-2,Hyperbola-2,Development,i-Space,China
+Jielong-1,Jielong-1,Active,CASC,China
+Kaituozhe 1,Kaituozhe 1,Retired,CASC,China
+Kaituozhe 2,Kaituozhe 2,Active,CASC,China
+KSLV-2,KSLV-2,Development,KARI,South Korea
+Kuaizhou 11,Kuaizhou 11,Development,ExPace (CASIC),China
+Kuaizhou 1A,Kuaizhou 1A,Active,ExPace (CASIC),China
+Kuaizhou 21,Kuaizhou 21,Development,ExPace (CASIC),China
+Kuaizhou 31,Kuaizhou 31,Development,ExPace (CASIC),China
+LauncherOne,LauncherOne,Active,Virgin Orbit,USA
+Long March 11,Long March 11,Active,CASC,China
+Long March 2C,Long March 2,Active,CASC,China
+Long March 2D,Long March 2,Active,CASC,China
+Long March 2F,Long March 2,Active,CASC,China
+Long March 3A,Long March 3,Active,CASC,China
+Long March 3B/E,Long March 3,Active,CASC,China
+Long March 3C,Long March 3,Active,CASC,China
+Long March 4B,Long March 4,Active,CASC,China
+Long March 4C,Long March 4,Active,CASC,China
+Long March 5,Long March 5,Active,CASC,China
+Long March 5B,Long March 5,Active,CASC,China
+Long March 6,Long March 6,Active,CASC,China
+Long March 6A,Long March 6,Development,CASC,China
+Long March 7,Long March 7,Active,CASC,China
+Long March 7A,Long March 7,Active,CASC,China
+Long March 8,Long March 8,Development,CASC,China
+Long March 9,Long March 9,Development,CASC,China
+Millennium Falcon,Millennium Falcon,Fictional,Corellian Engineering Corporation,Rebel Alliance
+Minotaur I,Minotaur I,Active,Northrop Grumman,USA
+Minotaur IV,Minotaur IV,Active,Northrop Grumman,USA
+Minotaur V,Minotaur V,Active,Northrop Grumman,USA
+Minotaur-C,Minotaur-C,Active,Northrop Grumman,USA
+Miura 5,Miura 5,Development,PLD Space,Spain
+N1,N1,Retired,OKB-1,USSR
+New Glenn,New Glenn,Development,Blue Origin,USA
+New Line 1,New Line 1,Development,LinkSpace,China
+New Shepard,New Shepard,Active,Blue Origin,USA
+NSL-A,NSL-A,Development,Gotospace,Italy
+OmegA,OmegA,Development,Northrop Grumman,USA
+OS-M1,OS-M,Active,OneSpace,China
+OS-M2,OS-M,Development,OneSpace,China
+Pallas-1,Pallas-1,Development,Galactic Energy,China
+Pegasus XL,Pegasus XL,Active,Northrop Grumman,USA
+Prime,Prime,Development,Orbex,UK
+Proton-M,Proton-M,Active,Khrunichev,Russia
+PSLV,PSLV,Active,ISRO,India
+PSLV-CA,PSLV,Active,ISRO,India
+PSLV-DL,PSLV,Active,ISRO,India
+PSLV-QL,PSLV,Active,ISRO,India
+PSLV-XL,PSLV,Active,ISRO,India
+Qased,Qased,Active,ISA,Iran
+Ravn,Ravn,Development,Aevum,USA
+Rocket 3.0,Rocket 3.0,Development,Astra,USA
+Rokot,Rokot,Retired,Khrunichev,Russia
+Safir-1B+,Safir,Active,ISA,Iran
+SARGE,SARGE,Active,Exos Aerospace,USA
+Saturn V,Saturn V,Retired,NASA,USA
+Sea Dragon,Sea Dragon,Fictional,Aerojet,USA
+Shavit-2,Shavit,Active,IAI,Israel
+Simorgh,Simorgh,Active,ISA,Iran
+SLS,SLS,Development,NASA,USA
+SLS Block 1,SLS Block 1,Development,NASA,USA
+SLS Block 1B,SLS Block 1B,Development,NASA,USA
+SLS Block 2,SLS Block 2,Development,NASA,USA
+Soyuz 2.1a,Soyuz 2.1a,Active,RKK Energia,Russia
+Soyuz 2.1b,Soyuz 2.1b,Active,RKK Energia,Russia
+Soyuz 2.1v,Soyuz 2.1v,Active,RKK Energia,Russia
+Soyuz 5 (Irtysh),Soyuz 5 (Irtysh),Development,RKK Energia,Russia
+Soyuz ST-A,Soyuz ST-A,Active,RKK Energia,Russia
+Soyuz ST-B,Soyuz ST-B,Active,RKK Energia,Russia
+Soyuz-FG,Soyuz-FG,Retired,RKK Energia,Russia
+SPARK,SPARK,Development,Sandia,USA
+SS-520,SS-520,Active,JAXA,Japan
+SSLV,SSLV,Development,ISRO,India
+Starship,Starship,Development,SpaceX,USA
+Starship/SH,Starship,Development,SpaceX,USA
+Starship/Super Heavy,Starship,Development,SpaceX,USA
+Start-1,Start-1,Active,MITT,Russia
+Strela,Strela,Active,NPO Mashinostroyeniya,Russia
+STS,STS,Retired,NASA,USA
+Terran-1,Terran-1,Development,Relativity Space,USA
+Titan II,Titan II,Retired,USAF,USA
+Titan IIIA,Titan III,Retired,USAF,USA
+Titan IIIB,Titan III,Retired,USAF,USA
+Titan IIIC,Titan III,Retired,USAF,USA
+Titan IIID,Titan III,Retired,USAF,USA
+Titan IIIE,Titan III,Retired,USAF,USA
+Titan IV,Titan IV,Retired,Lockheed Martin,USA
+Unha-3,Unha,Active,NADA,North Korea
+Vega,Vega,Active,ESA,Europe
+Vega C,Vega,Development,ESA,Europe
+Vega E,Vega,Development,ESA,Europe
+VLS Alfa,VLS,Development,CTA,Brazil
+VLS Beta,VLS,Development,CTA,Brazil
+Vulcan,Vulcan,Development,ULA,USA
+Yenisei,Yenisei,Development,RKK Energia,Russia
+Zenit,Zenit,Active,Yuzhnoye Design Bureau,Ukraine
+Zenit-2M,Zenit,Active,Yuzhnoye Design Bureau,Ukraine
+Zenit-3F,Zenit,Active,Yuzhnoye Design Bureau,Ukraine
+Zenit-3SL,Zenit,Active,Yuzhnoye Design Bureau,Ukraine
+Zenit-3SLB/3M,Zenit,Active,Yuzhnoye Design Bureau,Ukraine
+Zero,Zero,Development,Interstellar Technologies,Japan
+Zhuque-1,Zhuque-1,Active,LandSpace,China
+Zhuque-2,Zhuque-2,Development,LandSpace,China
