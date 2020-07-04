@@ -10,7 +10,8 @@
 import programenv as pe
 
 # General imports
-# import difflib
+import difflib
+import json
 import locale
 import math
 import os
@@ -23,6 +24,7 @@ import zroya
 
 from bs4 import BeautifulSoup
 from datetime import datetime
+from functools import partial
 
 
 class Launch:
@@ -79,6 +81,14 @@ class Launch:
         else:
             return [t for t in Launch.importantTimes if t < timeLeft][-1] # Next member of importantTimes that will be reached
 
+    def isSimilar(self, other, delta_t=60):
+        '''
+            @param other (Launch): Launch to be checked if similar
+            @param delta_t (int) [60]: Time difference in which two launches
+                are considered similar
+            @return (bool): Whether self and other are similar launches
+        '''
+        return self.launcher == other.launcher and abs(self.time - other.time) <= delta_t
     
     @staticmethod
     def beautifySeconds(s):
@@ -133,163 +143,190 @@ class Launch:
 #             time.sleep(0.5)
 #         self.withdraw()
 
-def checkWebsites():
-    '''
-        @return (list2D): List of lists, with each list containing all
-            launches from a certain website.
-    '''
-    allLaunches = []
+class Manifest:
+    def __init__(self):
+        self.allLaunches = []
+        self.launches = []
 
-    # First website
-    url = 'http://rocketlaunch.live'
+        self.rocketNames = []
+        self.rockets = {}
+        with open('data/rockets.csv') as csvfile:
+            csv = [line for line in csvfile]
+            for rocket in csv[1:]:
+                data = rocket.strip().split(',')
+                self.rocketNames.append(data[0]) # Name
+                self.rockets[data[0]] = {'name': data[0], 'family': data[1], 'status': data[2], 'provider': data[3], 'country': data[4]}
 
-    loadedWebsite = False
-    try:
-        with urllib.request.urlopen(url) as response:
-            html_doc = response.read()
-        soup = BeautifulSoup(html_doc, 'html.parser')
-        loadedWebsite = True
-    except:
-        pe.reportError(fatal=False, notify=False, message='%s: could not connect to website.' % url)
 
-    if loadedWebsite:
-        launchesDiv = soup.find_all('div', class_='launch')
-        launchesList = []
-        for nextLaunch in launchesDiv:
-            try:
-                details = nextLaunch.find_all('div', class_='mission_name')[0].find_all('h4')[0].find_all('a')[0] # The div contains an <h4> with an <a> with the sattelite in
+    def checkWebsites(self):
+        '''
+            @return (list2D): List of lists, with each list containing all
+                launches from a certain website.
+        '''
+        self.allLaunches = []
 
-                liveLink = None
-                if len(nextLaunch.find_all('div', class_='launch_live_embed')) > 0:
-                    liveFeedDiv = nextLaunch.find_all('div', class_='launch_live_embed')[0] # The div containing the video has class 'launch_live_embed'
-                    if len(liveFeedDiv.find_all('iframe')) > 0:
-                        iframe = liveFeedDiv.find_all('iframe')[0] # That div contains an iframe which renders the video
-                        liveLink = iframe['src'] # The 'src' attribute of that iframe contains the link to the video (often youtube)
+        # First website
+        url = 'http://rocketlaunch.live'
+
+        loadedWebsite = False
+        try:
+            with urllib.request.urlopen(url) as response:
+                html_doc = response.read()
+            soup = BeautifulSoup(html_doc, 'html.parser')
+            loadedWebsite = True
+        except:
+            pe.reportError(fatal=False, notify=False, message='%s: could not connect to website.' % url)
+
+        if loadedWebsite:
+            launchesDiv = soup.find_all('div', class_='launch')
+            launchesList = []
+            for nextLaunch in launchesDiv:
+                try:
+                    details = nextLaunch.find_all('div', class_='mission_name')[0].find_all('h4')[0].find_all('a')[0] # The div contains an <h4> with an <a> with the sattelite in
+
+                    liveLink = None
+                    if len(nextLaunch.find_all('div', class_='launch_live_embed')) > 0:
+                        liveFeedDiv = nextLaunch.find_all('div', class_='launch_live_embed')[0] # The div containing the video has class 'launch_live_embed'
+                        if len(liveFeedDiv.find_all('iframe')) > 0:
+                            iframe = liveFeedDiv.find_all('iframe')[0] # That div contains an iframe which renders the video
+                            liveLink = iframe['src'] # The 'src' attribute of that iframe contains the link to the video (often youtube)
+                    
+                    mission = details.text
+                    detailed_link = url + details['href'] # The <a> links to a detailed page
+
+                    timeSinceEpoch = int(nextLaunch['data-sortdate']) # The data-sortdate attribute contains the time since epoch of the launch
+                    if timeSinceEpoch%86400 >= 86397: # This means the date is known up to month (97), quartal (98) or year (99)
+                        timeSinceEpoch = math.inf # Do not use this to post notifications because the time is not known
+
+                    launcher = nextLaunch.find_all('div', class_='rlt-vehicle')[0].find_all('a')[0].text
+                    provider = nextLaunch.find_all('div', class_='rlt-provider')[0].find_all('a')[0].text
+                    location = nextLaunch.find_all('div', class_='rlt-location')[0].text.strip().replace('\n', ', ').replace('\t', '') # <div> has more text than just one line
+                    
+                    launchesList.append(Launch(timeSinceEpoch, launcher, mission, provider, link=detailed_link, liveLink=liveLink, location=location))
+                except:
+                    pe.reportError(fatal=False, notify=True, message='%s: Error while parsing HTML structure.' % url)
+
+            self.allLaunches.append(sorted(launchesList, key=lambda l:l.time))
+
+
+        # Second website
+        url = 'https://nextspaceflight.com/launches'
+
+        loadedWebsite = False
+        try:
+            with urllib.request.urlopen(url) as response:
+                html_doc = response.read()
+            soup = BeautifulSoup(html_doc, 'html.parser')
+            loadedWebsite = True
+        except:
+            pe.reportError(fatal=False, notify=False, message='%s: could not connect to website.' % url)
+
+        if loadedWebsite:
+            launchesDiv = soup.find_all('div', class_='mdl-card')
+            launchesList = []
+            for nextLaunch in launchesDiv:
+                try:
+                    links = nextLaunch.find_all('button', class_='mdc-button')
+                    detailed_link = os.path.dirname(url) + links[0]['onclick'].split('\'')[1]
+                    liveLink = links[1]['onclick'].split('\'')[1] if len(links) > 1 else None
                 
-                mission = details.text
-                detailed_link = url + details['href'] # The <a> links to a detailed page
+                    launcherAndMission = nextLaunch.find_all('h5')[0].text.strip().split(' | ') # The h5 in that div is '<launcher> | <mission>'
+                    launcher = launcherAndMission[0]
+                    mission = launcherAndMission[1]
+                    provider = nextLaunch.find_all('div', class_='mdl-card__title-text')[0].text.strip()
 
-                timeSinceEpoch = int(nextLaunch['data-sortdate']) # The data-sortdate attribute contains the time since epoch of the launch
-                if timeSinceEpoch%86400 >= 86397: # This means the date is known up to month (97), quartal (98) or year (99)
-                    timeSinceEpoch = math.inf # Do not use this to post notifications because the time is not known
-
-                launcher = nextLaunch.find_all('div', class_='rlt-vehicle')[0].find_all('a')[0].text
-                provider = nextLaunch.find_all('div', class_='rlt-provider')[0].find_all('a')[0].text
-                location = nextLaunch.find_all('div', class_='rlt-location')[0].text.strip().replace('\n', ', ').replace('\t', '') # <div> has more text than just one line
+                    details = nextLaunch.find_all('div', class_='mdl-card__supporting-text')[0].text.strip() # Div with this class contains 'time <br/> location'
+                    location = details.split('\n')[-1].strip()
+                    if details.startswith('NET'):
+                        timeSinceEpoch = math.inf # If the exact time is not known (NET), then don't notify this launch
+                    else:
+                        locale.setlocale(locale.LC_ALL, 'en_US.utf8') # For correct parsing of US time format to time since epoch
+                        p = '%a %b %d, %Y %H:%M %Z' # Example that satisfies this format: 'Sat Aug 03, 2019 22:51 UTC' (works with UTC)
+                        timeString = details.split('\n')[0].strip()
+                        epoch = datetime(1970, 1, 1)
+                        timeSinceEpoch = int((datetime.strptime(timeString, p) - epoch).total_seconds())
+                    
+                    launchesList.append(Launch(timeSinceEpoch, launcher, mission, provider, link=detailed_link, liveLink=liveLink, location=location))
+                except:
+                    pe.reportError(fatal=False, notify=True, message='%s: Error while parsing HTML structure.' % url)
                 
-                launchesList.append(Launch(timeSinceEpoch, launcher, mission, provider, link=detailed_link, liveLink=liveLink, location=location))
-            except:
-                pe.reportError(fatal=False, notify=True, message='%s: Error while parsing HTML structure.' % url)
-
-        allLaunches.append(sorted(launchesList, key=lambda l:l.time))
+            self.allLaunches.append(sorted(launchesList, key=lambda l:l.time))
 
 
-    # Second website
-    url = 'https://nextspaceflight.com/launches'
+    def generateSummary(self, options=None):
+        '''
+            @param listOfLists (list2D): List of lists, with each list containing
+                all launches from a certain website.
+            @return (list): List of Launch objects, summarizing all information
+                from the different websites for each respective launch.
+        '''
+        if options == None:
+            options = Options()
 
-    loadedWebsite = False
-    try:
-        with urllib.request.urlopen(url) as response:
-            html_doc = response.read()
-        soup = BeautifulSoup(html_doc, 'html.parser')
-        loadedWebsite = True
-    except:
-        pe.reportError(fatal=False, notify=False, message='%s: could not connect to website.' % url)
+        n = len([1 for l in self.allLaunches if len(l) != 0]) # Number of sites which actually work
+        threshold = math.ceil(n*0.4) # Number of sites which should agree on a launch being 'the same' for it to be accepted
+        maxTimeDifference = 60*15 # Maximum time difference in seconds between two launches for them to be regarded 'the same'
 
-    if loadedWebsite:
-        launchesDiv = soup.find_all('div', class_='demo-card-square')
-        launchesList = []
-        for nextLaunch in launchesDiv:
-            try:
-                links = nextLaunch.find_all('a')
-                detailed_link = os.path.dirname(url) + links[0]['href']
-                liveLink = links[1]['href'] if len(links) > 1 else None
-            
-                launcherAndMission = nextLaunch.find_all('h5')[0].text.strip().split(' | ') # The h5 in that div is '<launcher> | <mission>'
-                launcher = launcherAndMission[0]
-                mission = launcherAndMission[1]
-                provider = nextLaunch.find_all('div', class_='mdl-card__title-text')[0].text.strip()
-
-                details = nextLaunch.find_all('div', class_='mdl-card__supporting-text')[0].text.strip() # Div with this class contains 'time <br/> location'
-                location = details.split('\n')[-1].strip()
-                if details.startswith('NET'):
-                    timeSinceEpoch = math.inf # If the exact time is not known (NET), then don't notify this launch
-                else:
-                    locale.setlocale(locale.LC_ALL, 'en_US.utf8') # For correct parsing of US time format to time since epoch
-                    p = '%a %b %d, %Y %H:%M %Z' # Example that satisfies this format: 'Sat Aug 03, 2019 22:51 UTC' (works with UTC)
-                    timeString = details.split('\n')[0].strip()
-                    epoch = datetime(1970, 1, 1)
-                    timeSinceEpoch = int((datetime.strptime(timeString, p) - epoch).total_seconds())
-                
-                launchesList.append(Launch(timeSinceEpoch, launcher, mission, provider, link=detailed_link, liveLink=liveLink, location=location))
-            except:
-                pe.reportError(fatal=False, notify=True, message='%s: Error while parsing HTML structure.' % url)
-            
-        allLaunches.append(sorted(launchesList, key=lambda l:l.time))
-
-    return allLaunches
-
-
-def generateSummary(listOfLists):
-    '''
-        @param listOfLists (list2D): List of lists, with each list containing
-            all launches from a certain website.
-        @return (list): List of Launch objects, summarizing all information
-            from the different websites for each respective launch.
-    '''
-    n = len([1 for l in listOfLists if len(l) != 0]) # So if a website errors the entire time,
-    threshold = math.ceil(n*0.4)
-    maxTimeDifference = 60
-
-    allLaunches = sorted([item for sublist in listOfLists for item in sublist], key=lambda x:x.time)
-    
-    launches = []
-    for launch in allLaunches:
-        # If the time of launch is math.inf, or the launch has passed, or a launch within a minute of this one has already been found, then ignore this one
-        if launch.time == math.inf or launch.time < time.time() or any(abs(l.time - launch.time) < maxTimeDifference for l in launches):
-            continue
-        # Get all launches that are within a minute of this one
-        similarLaunches = [l for l in allLaunches if abs(l.time - launch.time) < maxTimeDifference]
-        # If not more than 40% of all websites report this time, ignore it
-        if len(similarLaunches) < threshold:
-            continue
+        allLaunches = sorted([item for sublist in self.allLaunches for item in sublist], key=lambda x:x.time) # Flatten the self.allLaunches
         
-        # Summarize all these similar launches
-        # Use difflib.get_close_matches to standardize the launcher
-        ## Time of launch: the lowest of them all, as to not to miss it
-        t = min([l.time for l in similarLaunches])
-        time_i = [l.time for l in similarLaunches].index(t) # Number of site which reports the earliest liftoff time
-        ## Launcher
-        launcher = max([l.launcher for l in similarLaunches], key=len) # The longer the name of the launcher, the more specific, probably
-        launcher_i = [l.launcher for l in similarLaunches].index(launcher) # Number of site which uses this launcher name
-        ## Mission
-        mission = [l.mission for l in similarLaunches][launcher_i]
-        ## Provider
-        provider = [l.provider for l in similarLaunches][launcher_i]
-        ## Link
-        link = [l.link for l in similarLaunches][time_i] # Go to the website that reports the earliest liftoff time
+        for i, launch in enumerate(allLaunches):
+            # Collapse launcher name to one from the list self.rocketNames
+            # and perhaps also collapse the company name or something
+            matches = difflib.get_close_matches(launch.launcher, self.rocketNames)
+            if not matches: # The launcher seems to be unknown
+                continue
+            else:
+                newName = matches[0] # If there are matches, as is the case in this else, take the first match
+                allLaunches[i].launcher = newName
 
-        ## LiveLink
-        liveLink = None
-        for keyword in ['spacex', 'rocketlab', 'youtube']: # First look for the first element, then the next... (most specific first)
-            for live in [l.liveLink for l in similarLaunches if l.liveLink is not None]: # Give preference to links to known sites
-                if keyword in live:
-                    liveLink = live
+        launches = []
+        for launch in allLaunches:
+            # If the time of launch is math.inf, or the launch has passed, or a launch within a minute of this one has already been found, then ignore this one
+            if launch.time == math.inf or launch.time < time.time() or any(abs(l.time - launch.time) < maxTimeDifference for l in launches):
+                continue
+            # Get all launches that are within <maxTimeDifference> seconds of this one
+            similarLaunches = [l for l in allLaunches if launch.isSimilar(l, delta_t=maxTimeDifference)]
+            # If not more than <threshold> of all websites report this launch, ignore it
+            if len(similarLaunches) < threshold:
+                continue
+            
+            # Summarize all these similar launches
+            # Use difflib.get_close_matches to standardize the launcher
+            ## Time of launch: the lowest of all reported times, as to not to miss it
+            t = min([l.time for l in similarLaunches])
+            time_i = [l.time for l in similarLaunches].index(t) # Number of site which reports the earliest liftoff time
+            ## Launcher
+            launcher = max([l.launcher for l in similarLaunches], key=len) # The longer the name of the launcher, the more specific, probably
+            launcher_i = [l.launcher for l in similarLaunches].index(launcher) # Number of site which uses this launcher name
+            ## Mission
+            mission = [l.mission for l in similarLaunches][launcher_i]
+            ## Provider
+            provider = [l.provider for l in similarLaunches][launcher_i]
+            ## Link
+            link = [l.link for l in similarLaunches][time_i] # Go to the website that reports the earliest liftoff time
+
+            ## LiveLink
+            liveLink = None
+            for keyword in ['spacex', 'rocketlab', 'youtube']: # First look for the first element, then the next... (most specific first)
+                for live in [l.liveLink for l in similarLaunches if l.liveLink is not None]: # Give preference to links to known sites
+                    if keyword in live:
+                        liveLink = live
+                        break
+                if liveLink is not None: # To escape this loop as well
                     break
-            if liveLink is not None: # To escape this loop as well
-                break
-        if liveLink is None: # If no keywords were found
-            notNoneLinks = [l.liveLink for l in similarLaunches if l.liveLink is not None]
-            if any(notNoneLinks):
-                liveLink = notNoneLinks[0]
+            if liveLink is None: # If no keywords were found
+                notNoneLinks = [l.liveLink for l in similarLaunches if l.liveLink is not None]
+                if any(notNoneLinks):
+                    liveLink = notNoneLinks[0]
 
-        ## Location
-        location = [l.location for l in similarLaunches][time_i]
-        if location is None: # If the location that site shows is None, then take another one that is not None, if possible
-            location = next((l.location for l in similarLaunches if l.location is not None), None)
+            ## Location
+            location = [l.location for l in similarLaunches][time_i]
+            if location is None: # If the location that site shows is None, then take another one that is not None, if possible
+                location = next((l.location for l in similarLaunches if l.location is not None), None)
 
-        launches.append(Launch(t, launcher, mission, provider, link=link, liveLink=liveLink, location=location))
-    return sorted(launches, key=lambda l:l.time)
+            launches.append(Launch(t, launcher, mission, provider, link=link, liveLink=liveLink, location=location))
+        
+        self.launches = sorted(launches, key=lambda l:l.time)
 
 
 def onAction(nid, action_id, launch):
@@ -335,25 +372,78 @@ def notification(launch, closestImportantTime=True):
     zroya.show(template, on_action=lambda nic, action_id: onAction(nic, action_id, launch))
 
 
+class Options():
+    def __init__(self, file='options.json'):
+        self.appdataDirectory = os.path.expandvars(u"%%APPDATA%%\\%s" % pe.PROGRAMNAME)
+        self.file = os.path.join(self.appdataDirectory, file)
+        if not os.path.exists(self.appdataDirectory):
+            os.makedirs(self.appdataDirectory)
+        if not os.path.exists(self.file):
+            self.reset()
+        else:
+            with open(self.file, 'r') as optionsFile:
+                self.options = json.load(optionsFile)
+    
+    def updateFile(self):
+        '''
+            Writes the options dictionary to a json file to remember the settings
+        '''
+        with open(self.file, 'w') as optionsFile:
+            json.dump(self.options, optionsFile)
+
+    def set(self, optionName, value, saveFile=False):
+        '''
+            Changes one of the settings, including:
+            - language : EN or NL
+            - fromPath : the path to backup
+            - toPath : the path to place the backup in
+            @param optionName [str]: The name of the option to be updated.
+            @param value [?]: The value to assign to that option.
+            @param saveFile [bool]: Whether to save the options.json file
+                after this update of the options object.
+        '''
+        self.options[optionName] = value
+        self.updateFile()
+
+    def get(self, optionName):
+        '''
+            Gets the specified option's value.
+            @param optionName [str]: Name of the option that is requested.
+        '''
+        return self.options[optionName]
+
+    def reset(self):
+        '''
+            Resets all options to the default settings.
+        '''
+        self.options = {'language' : 'EN', 'blockedRockets' : []}
+        self.updateFile()
+
+
 def main():
-    allLaunches = generateSummary(checkWebsites())
+    manifest = Manifest()
+    manifest.checkWebsites()
+    manifest.generateSummary()
+    print(len(manifest.allLaunches[0]))
+    print(len(manifest.allLaunches[1]))
+    print(len(manifest.launches))
     maximumRecheckTime = 1800
 
     # On start of the program, display the next launch no matter what
-    while len(allLaunches) == 0: # Unless there is no internet connection
+    while len(manifest.launches) == 0: # Unless there is no internet connection
         time.sleep(maximumRecheckTime)
-        allLaunches = generateSummary(checkWebsites())
-    notification(allLaunches[0], closestImportantTime=False)
+        manifest.generateSummary()
+    notification(manifest.launches[0], closestImportantTime=False)
 
     while True:
         slept = False
-        if len(allLaunches) == 0: # No websites could be reached, or no launches are available
+        if len(manifest.launches) == 0: # No websites could be reached, or no launches are available
             time.sleep(maximumRecheckTime) # Wait before rechecking the websites
-            allLaunches = generateSummary(checkWebsites()) # Recheck for allLaunches
+            manifest.generateSummary() # Recheck for allLaunches
             continue # Continue with the next iteration of the loop
 
-        nextImportantLaunch = sorted(allLaunches, key=lambda l:l.nextImportantTime(sinceEpoch=True))[0]
-        print(sorted(allLaunches, key=lambda l:l.nextImportantTime(sinceEpoch=True))[:5])
+        nextImportantLaunch = sorted(manifest.launches, key=lambda l:l.nextImportantTime(sinceEpoch=True))[0]
+        #print(sorted(manifest.launches, key=lambda l:l.nextImportantTime(sinceEpoch=True))[:5])
 
         # Next important time
         nextImportantTimeEpoch = nextImportantLaunch.nextImportantTime(sinceEpoch=True)
@@ -371,9 +461,9 @@ def main():
         
         # Check whether the launch still exists, otherwise check the next
         # important time again (i.e., continue the next iteration of the loop)
-        allLaunches = generateSummary(checkWebsites())
-        if nextImportantLaunch in allLaunches:
-            nextImportantLaunch = [l for l in allLaunches if nextImportantLaunch == l][0]
+        manifest.generateSummary()
+        if nextImportantLaunch in manifest.launches:
+            nextImportantLaunch = [l for l in manifest.launches if nextImportantLaunch == l][0]
             if slept and time.time() > nextImportantTimeEpoch:
                 # Notification with current T- time if an importantTime was missed (and the launch hasn't happened yet, otherwise it's pretty useless to push notifications)
                 notification(nextImportantLaunch, closestImportantTime=False)
@@ -382,8 +472,13 @@ def main():
                 # Notification as usual
                 notification(nextImportantLaunch)
         
-        
+
 if __name__ == "__main__":
+    if len(sys.argv) > 1:
+        if sys.argv[1] == 'noGUI':
+            # don't show the GUI with options, only push a notification if that option isnt disabled
+            pass
+
     pe.checkIfRunning()
     willUpdate = pe.checkForUpdates()
     if willUpdate:
@@ -412,6 +507,7 @@ if __name__ == "__main__":
         pass
     except SystemExit:
         # The exit was intended in the source code itself (e.g. quit() or sys.exit())
+        # I am aware that this is a horrible way of doing this :P
         pass
     except:
         # Something horrible happened, otherwise we would already have caught the error
