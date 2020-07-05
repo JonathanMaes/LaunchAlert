@@ -3,8 +3,7 @@
 # Ideas:
 # - Perhaps stop using the error-prone zroya module and use an actual window
 #   without border (self.overrideredirect=True in tkinter App)
-# - Collapse launcher and company names to closest result with
-#   difflib.get_close_matches() and show custom rocket icon for known rockets
+# - Show custom rocket icon for known rockets
 
 # Local imports
 import programenv as pe
@@ -17,11 +16,12 @@ import math
 import os
 import sys
 import time
-# import tkinter as tk
+#import tkinter as tk
 import urllib.request
 import webbrowser
 import zroya
 
+# Single function imports
 from bs4 import BeautifulSoup
 from datetime import datetime
 from functools import partial
@@ -329,47 +329,119 @@ class Manifest:
         self.launches = sorted(launches, key=lambda l:l.time)
 
 
-def onAction(nid, action_id, launch):
-    '''
-        Action 0: Dismiss
-        Action 1: More info -> link to launch.link
-        Action 2: Watch live -> link to launch.livelink
-    '''
-    if action_id == 0: # Dismiss
-        zroya.hide(nid)
-    if action_id == 1: # More info
-        webbrowser.open(launch.link)  # Go to example.com
-    if action_id == 2:
-        webbrowser.open(launch.liveLink)
+class App():
+    def __init__(self):
+        self.manifest = Manifest()
+        
+        self.maximumRecheckTime = 1800
 
 
-def notification(launch, closestImportantTime=True):
-    '''
-        @param launch (Launch): The launch which this notification is for.
-        @param closestImportantTime (bool) [True]: If true, the header of the
-            notification is taken to be the next important time (24 hours, 
-            60 minutes...), if false, the real time to liftoff is taken.
-            (This is to make sure the notification doesn't say T-23 hours just
-            because the notification is one second late for T-24 hours.)
-    '''
-    template = zroya.Template(zroya.TemplateType.ImageAndText4)
-    if closestImportantTime:
-        template.setFirstLine('%s' % Launch.beautifySeconds([t for t in Launch.importantTimes if t > launch.time - time.time()][0]))
-    else:
-        template.setFirstLine('%s' % Launch.beautifySeconds(launch.time - time.time()))
-    template.setSecondLine('%s' % Launch.beautifyTime(launch.time))
-    template.setThirdLine('%s (%s) | %s' % (launch.launcher, launch.provider, launch.mission))
-    template.setAudio(audio=zroya.Audio.Reminder)
-    template.setImage('data/rocket.png')
-    if launch.location is not None:
-        template.setAttribution('%s' % launch.location)
+    def main(self):
+        if len(sys.argv) > 1:
+            if sys.argv[1] == 'noGUI':
+                # don't show the GUI with options, only push a notification if that option isnt disabled
+                pass
+            
+        # Zroya
+        status = zroya.init(
+            app_name=pe.PROGRAMNAME,
+            company_name=pe.COMPANYNAME,
+            product_name="Launch Alert",
+            sub_product="core",
+            version=version
+        )
+        if not status:
+            pe.reportError(fatal=True, notify=True, message='Initialization failed.')
+        
+        self.manifest.checkWebsites()
+        self.manifest.generateSummary()
+        print(len(self.manifest.allLaunches[0]), len(self.manifest.allLaunches[1]), len(self.manifest.launches))
+        
+        # On start of the program, display the next launch
+        while len(self.manifest.launches) == 0: # Unless there is no internet connection
+            time.sleep(self.maximumRecheckTime)
+            self.manifest.generateSummary()
+        self.notification(self.manifest.launches[0], closestImportantTime=False)
 
-    template.addAction("Dismiss")
-    template.addAction("More info")
-    if launch.liveLink is not None:
-        template.addAction("Watch live")
-    
-    zroya.show(template, on_action=lambda nic, action_id: onAction(nic, action_id, launch))
+    def mainloop(self):
+        while True:
+            slept = False
+            if len(self.manifest.launches) == 0: # No websites could be reached, or no launches are available
+                time.sleep(self.maximumRecheckTime) # Wait before rechecking the websites
+                self.manifest.generateSummary() # Recheck for allLaunches
+                continue # Continue with the next iteration of the loop
+
+            nextImportantLaunch = sorted(self.manifest.launches, key=lambda l:l.nextImportantTime(sinceEpoch=True))[0]
+            #print(sorted(manifest.launches, key=lambda l:l.nextImportantTime(sinceEpoch=True))[:5])
+
+            # Next important time
+            nextImportantTimeEpoch = nextImportantLaunch.nextImportantTime(sinceEpoch=True)
+            untilNextTime = nextImportantTimeEpoch - math.ceil(time.time())
+            nextRecheckTime = min(time.time() + self.maximumRecheckTime, nextImportantTimeEpoch) # Time since epoch until which we sleep
+
+            # Wait appropriately
+            while time.time() < nextRecheckTime: # To prevent unwanted waiting (because of time.sleep) after sleep mode etc.
+                time.sleep(1)
+
+            if abs(time.time() - nextRecheckTime) > 10: # True if the program slept too long for the nextImportantTime (e.g. screensaver etc.)
+                slept = True
+                # Connection to websites not possible instantly after coming out of sleep mode, try in one minute instead
+                time.sleep(60) 
+            
+            # Check whether the launch still exists, otherwise check the next
+            # important time again (i.e., continue the next iteration of the loop)
+            self.manifest.generateSummary()
+            if nextImportantLaunch in self.manifest.launches:
+                nextImportantLaunch = [l for l in self.manifest.launches if nextImportantLaunch == l][0]
+                if slept and time.time() > nextImportantTimeEpoch:
+                    # Notification with current T- time if an importantTime was missed (and the launch hasn't happened yet, otherwise it's pretty useless to push notifications)
+                    self.notification(nextImportantLaunch, closestImportantTime=False)
+
+                elif untilNextTime < self.maximumRecheckTime: # If the time.sleep was ended because an importantTime is now
+                    # Notification as usual
+                    self.notification(nextImportantLaunch)
+
+    def onAction(self, nid, action_id, launch):
+        '''
+            Action 0: Dismiss
+            Action 1: More info -> link to launch.link
+            Action 2: Watch live -> link to launch.livelink
+        '''
+        if action_id == 0: # Dismiss
+            zroya.hide(nid)
+        if action_id == 1: # More info
+            webbrowser.open(launch.link)
+        if action_id == 2: # Watch live
+            webbrowser.open(launch.liveLink)
+
+
+    def notification(self, launch, closestImportantTime=True):
+        '''
+            @param launch (Launch): The launch which this notification is for.
+            @param closestImportantTime (bool) [True]: If true, the header of the
+                notification is taken to be the next important time (24 hours, 
+                60 minutes...), if false, the real time to liftoff is taken.
+                (This is to make sure the notification doesn't say T-23 hours just
+                because the notification is one second late for T-24 hours.)
+        '''
+        template = zroya.Template(zroya.TemplateType.ImageAndText4)
+        if closestImportantTime:
+            template.setFirstLine('%s' % Launch.beautifySeconds([t for t in Launch.importantTimes if t > launch.time - time.time()][0]))
+        else:
+            template.setFirstLine('%s' % Launch.beautifySeconds(launch.time - time.time()))
+        template.setSecondLine('%s' % Launch.beautifyTime(launch.time))
+        template.setThirdLine('%s (%s) | %s' % (launch.launcher, launch.provider, launch.mission))
+        template.setAudio(audio=zroya.Audio.Reminder)
+        template.setImage('data/rocket.png')
+        if launch.location is not None:
+            template.setAttribution('%s' % launch.location)
+
+        template.addAction("Dismiss")
+        template.addAction("More info")
+        if launch.liveLink is not None:
+            template.addAction("Watch live")
+        
+        zroya.show(template, on_action=lambda nic, action_id: self.onAction(nic, action_id, launch))
 
 
 class Options():
@@ -421,82 +493,20 @@ class Options():
 
 
 def main():
-    manifest = Manifest()
-    manifest.checkWebsites()
-    manifest.generateSummary()
-    print(len(manifest.allLaunches[0]))
-    print(len(manifest.allLaunches[1]))
-    print(len(manifest.launches))
-    maximumRecheckTime = 1800
-
-    # On start of the program, display the next launch no matter what
-    while len(manifest.launches) == 0: # Unless there is no internet connection
-        time.sleep(maximumRecheckTime)
-        manifest.generateSummary()
-    notification(manifest.launches[0], closestImportantTime=False)
-
-    while True:
-        slept = False
-        if len(manifest.launches) == 0: # No websites could be reached, or no launches are available
-            time.sleep(maximumRecheckTime) # Wait before rechecking the websites
-            manifest.generateSummary() # Recheck for allLaunches
-            continue # Continue with the next iteration of the loop
-
-        nextImportantLaunch = sorted(manifest.launches, key=lambda l:l.nextImportantTime(sinceEpoch=True))[0]
-        #print(sorted(manifest.launches, key=lambda l:l.nextImportantTime(sinceEpoch=True))[:5])
-
-        # Next important time
-        nextImportantTimeEpoch = nextImportantLaunch.nextImportantTime(sinceEpoch=True)
-        untilNextTime = nextImportantTimeEpoch - math.ceil(time.time())
-        nextRecheckTime = min(time.time() + maximumRecheckTime, nextImportantTimeEpoch) # Time since epoch until which we sleep
-
-        # Wait appropriately
-        while time.time() < nextRecheckTime: # To prevent unwanted waiting (because of time.sleep) after sleep mode etc.
-            time.sleep(1)
-
-        if abs(time.time() - nextRecheckTime) > 10: # True if the program slept too long for the nextImportantTime (e.g. screensaver etc.)
-            slept = True
-            # Connection to websites not possible instantly after coming out of sleep mode, try in one minute instead
-            time.sleep(60) 
-        
-        # Check whether the launch still exists, otherwise check the next
-        # important time again (i.e., continue the next iteration of the loop)
-        manifest.generateSummary()
-        if nextImportantLaunch in manifest.launches:
-            nextImportantLaunch = [l for l in manifest.launches if nextImportantLaunch == l][0]
-            if slept and time.time() > nextImportantTimeEpoch:
-                # Notification with current T- time if an importantTime was missed (and the launch hasn't happened yet, otherwise it's pretty useless to push notifications)
-                notification(nextImportantLaunch, closestImportantTime=False)
-
-            elif untilNextTime < maximumRecheckTime: # If the time.sleep was ended because an importantTime is now
-                # Notification as usual
-                notification(nextImportantLaunch)
+    app = App() # Pure initialisation of class
+    app.main() # Further initialisation of the program
+    app.mainloop() # Program loop
         
 
 if __name__ == "__main__":
-    if len(sys.argv) > 1:
-        if sys.argv[1] == 'noGUI':
-            # don't show the GUI with options, only push a notification if that option isnt disabled
-            pass
-
     pe.checkIfRunning()
     willUpdate = pe.checkForUpdates()
     if willUpdate:
         sys.exit()
 
-    # Zroya
     with open('changelog.txt', 'r') as f:
         version = f.readline()
-    status = zroya.init(
-        app_name=pe.PROGRAMNAME,
-        company_name=pe.COMPANYNAME,
-        product_name="Launch Alert",
-        sub_product="core",
-        version=version
-    )
     print('v%s' % version)
-    if not status:
-        pe.reportError(fatal=True, notify=True, message='Initialization failed.')
 
     # Main function, with exceptions
     try:
