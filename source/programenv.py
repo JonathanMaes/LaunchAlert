@@ -13,7 +13,9 @@ PROGRAMNAMEEXECUTABLE = u"jonathanslaunchnotifications"
 COMPANYNAME = u"OrOrg Development inc."
 REMOTE_FILENAME_CHANGELOG = 'https://raw.githubusercontent.com/JonathanMaes/LaunchAlert/master/source/changelog.txt'
 REMOTE_FILENAME_INSTALLER = 'https://github.com/JonathanMaes/LaunchAlert/blob/master/installer/JonathansLaunchAlert_installer.exe?raw=true'
-
+CLIENT_FILENAME_CHANGELOG = 'changelog.txt'
+with open(CLIENT_FILENAME_CHANGELOG, 'r') as f: # First line of changelog.txt is version
+    VERSION = f.readline()
 
 ## PROGRAM ENVIRONMENT FUNCTIONS ##
 def reportError(fatal=False, notify=None, message=''):

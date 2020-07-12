@@ -1,3 +1,8 @@
+1.1.0
+Options menu
++ A window will open when the program is opened via a shortcut which is not the Start-Up shortcut
++ Can select which rockets will cause notifications
+---
 1.0.5
 One instance at a time
 * When an instance of the program is already running, the newly launched instance will terminate it first

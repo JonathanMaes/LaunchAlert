@@ -4,9 +4,11 @@
 # - Perhaps stop using the error-prone zroya module and use an actual window
 #   without border (self.overrideredirect=True in tkinter App)
 # - Show custom rocket icon for known rockets
+# - Show tray icon with option to open GUI
 
 # Local imports
 import programenv as pe
+import GUI
 
 # General imports
 import difflib
@@ -144,7 +146,8 @@ class Launch:
 #         self.withdraw()
 
 class Manifest:
-    def __init__(self):
+    def __init__(self, app):
+        self.app = app
         self.allLaunches = []
         self.launches = []
 
@@ -269,9 +272,8 @@ class Manifest:
 
         allLaunches = sorted([item for sublist in self.allLaunches for item in sublist], key=lambda x:x.time) # Flatten the self.allLaunches
         
+        # Collapse launcher name to one from the list self.rocketNames
         for i, launch in enumerate(allLaunches):
-            # Collapse launcher name to one from the list self.rocketNames
-            # and perhaps also collapse the company name or something
             matches = difflib.get_close_matches(launch.launcher, self.rocketNames)
             if not matches: # The launcher seems to be unknown
                 continue
@@ -281,6 +283,10 @@ class Manifest:
 
         launches = []
         for launch in allLaunches:
+            # If we do not care about this rocket, just continue to the next launch
+            if self.rockets[launch.launcher]['family'] in self.app.options.get('blockedRockets'):
+                continue
+
             # If the time of launch is math.inf, or the launch has passed, or a launch within a minute of this one has already been found, then ignore this one
             if launch.time == math.inf or launch.time < time.time() or any(abs(l.time - launch.time) < maxTimeDifference for l in launches):
                 continue
@@ -331,9 +337,12 @@ class Manifest:
 
 class App():
     def __init__(self):
-        self.manifest = Manifest()
+        self.manifest = Manifest(self)
         
         self.maximumRecheckTime = 1800
+        self.options = Options()
+
+        self.GUI = GUI.GUI(self)
 
 
     def main(self):
@@ -341,6 +350,14 @@ class App():
             if sys.argv[1] == 'noGUI':
                 # don't show the GUI with options, only push a notification if that option isnt disabled
                 pass
+        else:
+            # TODO: System tray icon
+            # self.trayIcon = GUI.TrayIcon("data/icon.ico", self)
+            # self.trayIcon.show()
+
+            # show the GUI
+            self.GUI.initUI()
+
             
         # Zroya
         status = zroya.init(
@@ -348,7 +365,7 @@ class App():
             company_name=pe.COMPANYNAME,
             product_name="Launch Alert",
             sub_product="core",
-            version=version
+            version=pe.VERSION
         )
         if not status:
             pe.reportError(fatal=True, notify=True, message='Initialization failed.')
@@ -400,6 +417,9 @@ class App():
                 elif untilNextTime < self.maximumRecheckTime: # If the time.sleep was ended because an importantTime is now
                     # Notification as usual
                     self.notification(nextImportantLaunch)
+    
+    def close(self):
+        sys.exit()
 
     def onAction(self, nid, action_id, launch):
         '''
@@ -493,21 +513,19 @@ class Options():
 
 
 def main():
+    pe.checkIfRunning()
+    willUpdate = pe.checkForUpdates()
+    if willUpdate:
+        sys.exit()
+
+    print('v%s' % pe.VERSION)
+
     app = App() # Pure initialisation of class
     app.main() # Further initialisation of the program
     app.mainloop() # Program loop
         
 
 if __name__ == "__main__":
-    pe.checkIfRunning()
-    willUpdate = pe.checkForUpdates()
-    if willUpdate:
-        sys.exit()
-
-    with open('changelog.txt', 'r') as f:
-        version = f.readline()
-    print('v%s' % version)
-
     # Main function, with exceptions
     try:
         main()
