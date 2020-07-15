@@ -1,3 +1,11 @@
+1.0.5
+Putting this here to prevent auto-update since 1.1 versions are not working correctly at all
+
+
+1.1.1
+Reduce installer size
+* The installer is enormous for what a small program this is like wtf
+---
 1.1.0
 Options menu
 + A window will open when the program is opened via a shortcut which is not the Start-Up shortcut
