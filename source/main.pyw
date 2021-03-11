@@ -3,6 +3,9 @@
 # Ideas:
 # - Perhaps stop using the error-prone zroya module and use an actual window
 #   without border (self.overrideredirect=True in tkinter App)
+#   Update: I recently discovered the 'winrt' python package, which should do things properly.
+#           The only catch is that for you, future Jonathan, this will not be 'recently', 
+#           but more likely several months if not years ago.
 # - Show custom rocket icon for known rockets
 # - Show tray icon with option to open GUI
 
@@ -428,7 +431,12 @@ class App():
             Action 2: Watch live -> link to launch.livelink
         '''
         if action_id == 0: # Dismiss
-            zroya.hide(nid)
+            try:
+                zroya.hide(nid=nid)
+            except:
+                s = '(nid = %s, \n action_id = %s, launch = %s)' % (nid, action_id, launch)
+                print(s)
+                # pe.reportError(fatal=False, notify=True, message=s)
         if action_id == 1: # More info
             webbrowser.open(launch.link)
         if action_id == 2: # Watch live
@@ -447,20 +455,26 @@ class App():
         template = zroya.Template(zroya.TemplateType.ImageAndText4)
         if closestImportantTime:
             template.setFirstLine('%s' % Launch.beautifySeconds([t for t in Launch.importantTimes if t > launch.time - time.time()][0]))
+            print('%s' % Launch.beautifySeconds([t for t in Launch.importantTimes if t > launch.time - time.time()][0]))
         else:
             template.setFirstLine('%s' % Launch.beautifySeconds(launch.time - time.time()))
+            print('%s' % Launch.beautifySeconds(launch.time - time.time()))
         template.setSecondLine('%s' % Launch.beautifyTime(launch.time))
+        print('%s' % Launch.beautifyTime(launch.time))
         template.setThirdLine('%s (%s) | %s' % (launch.launcher, launch.provider, launch.mission))
+        print('%s (%s) | %s' % (launch.launcher, launch.provider, launch.mission))
         template.setAudio(audio=zroya.Audio.Reminder)
         template.setImage('data/rocket.png')
         if launch.location is not None:
             template.setAttribution('%s' % launch.location)
+            print('%s' % launch.location)
 
         template.addAction("Dismiss")
         template.addAction("More info")
         if launch.liveLink is not None:
             template.addAction("Watch live")
-        
+            print(launch.liveLink)
+
         zroya.show(template, on_action=lambda nic, action_id: self.onAction(nic, action_id, launch))
 
 
