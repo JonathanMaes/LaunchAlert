@@ -30,7 +30,7 @@ Atlas V 552,Atlas V,Active,ULA,USA
 Atlas V N22,Atlas V,Active,ULA,USA
 Black Arrow,Black Arrow,Retired,Royal Aircraft Establishment,UK
 Bloostar,Bloostar,Development,Zero 2 Infinity,Spain
-Ceres-1,Ceres-1,Development,Galactic Energy,China
+Ceres-1,Ceres-1,Active,Galactic Energy,China
 Cyclone-4M,Cyclone-4M,Development,Yuzhnoye Design Bureau,Ukraine
 Delta IV Heavy,Delta IV Heavy,Active,ULA,USA
 Delta IV Medium,Delta IV Medium,Retired,ULA,USA
@@ -42,8 +42,7 @@ Falcon 1,Falcon 1,Retired,SpaceX,USA
 Falcon 9,Falcon 9,Active,SpaceX,USA
 Falcon 9 Block 5,Falcon 9,Active,SpaceX,USA
 Falcon Heavy,Falcon Heavy,Active,SpaceX,USA
-Firefly Alpha,Firefly Alpha,Development,Firefly Aerospace,USA
-Firefly Beta,Firefly Beta,Development,Firefly Aerospace,USA
+Firefly Alpha,Firefly Alpha,Active,Firefly Aerospace,USA
 GSLV Mk II,GSLV Mk II,Active,ISRO,India
 GSLV Mk III,GSLV Mk III,Active,ISRO,India
 H3,H3,Development,MHI,Japan
@@ -63,7 +62,7 @@ Hyperbola-2,Hyperbola-2,Development,i-Space,China
 Jielong-1,Jielong-1,Active,CASC,China
 Kaituozhe 1,Kaituozhe 1,Retired,CASC,China
 Kaituozhe 2,Kaituozhe 2,Active,CASC,China
-KSLV-2,KSLV-2,Development,KARI,South Korea
+KSLV-2,KSLV-2,Active,KARI,South Korea
 Kuaizhou 11,Kuaizhou 11,Active,ExPace (CASIC),China
 Kuaizhou 1A,Kuaizhou 1A,Active,ExPace (CASIC),China
 Kuaizhou 21,Kuaizhou 21,Development,ExPace (CASIC),China
@@ -84,7 +83,7 @@ Long March 6,Long March 6,Active,CASC,China
 Long March 6A,Long March 6,Development,CASC,China
 Long March 7,Long March 7,Active,CASC,China
 Long March 7A,Long March 7,Active,CASC,China
-Long March 8,Long March 8,Development,CASC,China
+Long March 8,Long March 8,Active,CASC,China
 Long March 9,Long March 9,Development,CASC,China
 Millennium Falcon,Millennium Falcon,Fictional,Corellian Engineering Corporation,Rebel Alliance
 Minotaur I,Minotaur,Active,Northrop Grumman,USA
