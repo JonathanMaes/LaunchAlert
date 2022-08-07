@@ -10,9 +10,9 @@ Ariane 6 A62,Ariane 6,Development,Arianespace,EU,Europe
 Ariane 6 A64,Ariane 6,Development,Arianespace,EU,Europe
 Ariane 6,Ariane 6,Development,Arianespace,EU,Europe
 Atlas V 401,Atlas V,Active,ULA,USA,America
-Atlas V 411,Atlas V,Active,ULA,USA,America
-Atlas V 421,Atlas V,Active,ULA,USA,America
-Atlas V 431,Atlas V,Active,ULA,USA,America
+Atlas V 411,Atlas V,Retired,ULA,USA,America
+Atlas V 421,Atlas V,Retired,ULA,USA,America
+Atlas V 431,Atlas V,Retired,ULA,USA,America
 Atlas V 501,Atlas V,Active,ULA,USA,America
 Atlas V 511,Atlas V,Active,ULA,USA,America
 Atlas V 521,Atlas V,Active,ULA,USA,America
@@ -105,7 +105,7 @@ PSLV-QL,PSLV,Active,ISRO,India,Asia
 PSLV-XL,PSLV,Active,ISRO,India,Asia
 Qased,Qased,Active,ISA,Iran,Asia
 Ravn,Ravn,Development,Aevum,USA,America
-Rocket 3,Rocket 3,Active,Astra,USA,America
+Rocket 3,Rocket 3,Retired,Astra,USA,America
 Rokot,Rokot,Retired,Khrunichev,Russia,Asia
 Safir-1B+,Safir,Active,ISA,Iran,Asia
 SARGE,SARGE,Active,Exos Aerospace,USA,America
@@ -129,7 +129,7 @@ Soyuz ST-B,Soyuz ST-B,Active,RKK Energia,Russia,Asia
 Soyuz-FG,Soyuz-FG,Retired,RKK Energia,Russia,Asia
 SPARK,SPARK,Development,Sandia,USA,America
 SS-520,SS-520,Active,JAXA,Japan,Asia
-SSLV,SSLV,Development,ISRO,India,Asia
+SSLV,SSLV,Active,ISRO,India,Asia
 Starship,Starship,Active,SpaceX,USA,America
 Starship/SH,Starship,Development,SpaceX,USA,America
 Starship/Super Heavy,Starship,Development,SpaceX,USA,America
