@@ -36,10 +36,9 @@ Falcon 9 Block 5,Falcon 9,Active,SpaceX,USA,America
 Falcon Heavy,Falcon Heavy,Active,SpaceX,USA,America
 Firefly Alpha,Firefly Alpha,Active,Firefly Aerospace,USA,America
 GSLV Mk II,GSLV Mk II,Active,ISRO,India,Asia
-GSLV Mk III,GSLV Mk III,Active,ISRO,India,Asia
-H3,H3,Development,MHI,Japan,Asia
+H3,H3,Active,MHI,Japan,Asia
 H3-22L,H3,Development,MHI,Japan,Asia
-H3-22S,H3,Development,MHI,Japan,Asia
+H3-22S,H3,Active,MHI,Japan,Asia
 H3-24L,H3,Development,MHI,Japan,Asia
 H3-24S,H3,Development,MHI,Japan,Asia
 H3-30L,H3,Development,MHI,Japan,Asia
@@ -59,7 +58,7 @@ Kuaizhou 11,Kuaizhou 11,Active,ExPace (CASIC),China,Asia
 Kuaizhou 1A,Kuaizhou 1A,Active,ExPace (CASIC),China,Asia
 Kuaizhou 21,Kuaizhou 21,Development,ExPace (CASIC),China,Asia
 Kuaizhou 31,Kuaizhou 31,Development,ExPace (CASIC),China,Asia
-LauncherOne,LauncherOne,Active,Virgin Orbit,USA,America
+LauncherOne,LauncherOne,Retired,Virgin Orbit,USA,America
 Long March 11,Long March 11,Active,CASC,China,Asia
 Long March 2C,Long March 2,Active,CASC,China,Asia
 Long March 2D,Long March 2,Active,CASC,China,Asia
@@ -77,6 +76,7 @@ Long March 7,Long March 7,Active,CASC,China,Asia
 Long March 7A,Long March 7,Active,CASC,China,Asia
 Long March 8,Long March 8,Active,CASC,China,Asia
 Long March 9,Long March 9,Development,CASC,China,Asia
+LVM3,LVM3,Active,ISRO,India,Asia
 Maia,Maia,Development,MaiaSpace,France,Europe
 Meso,Meso,Development,Pangea Aerospace,Spain,Europe
 Millennium Falcon,Millennium Falcon,Fictional,Corellian Engineering Corporation,Rebel Alliance,Faraway Galaxy
@@ -107,7 +107,7 @@ Qased,Qased,Active,ISA,Iran,Asia
 Ravn,Ravn,Development,Aevum,USA,America
 Rocket 3,Rocket 3,Retired,Astra,USA,America
 Rokot,Rokot,Retired,Khrunichev,Russia,Asia
-RS1,RS1,Development,ABL Space Systems,USA,America
+RS1,RS1,Active,ABL Space Systems,USA,America
 Safir-1B+,Safir,Active,ISA,Iran,Asia
 SARGE,SARGE,Active,Exos Aerospace,USA,America
 Saturn V,Saturn V,Retired,NASA,USA,America
@@ -117,8 +117,8 @@ Simorgh,Simorgh,Active,ISA,Iran,Asia
 SIRIUS 1,SIRIUS,Development,Sirius Space Services,France,Europe
 SIRIUS 13,SIRIUS,Development,Sirius Space Services,France,Europe
 SIRIUS 15,SIRIUS,Development,Sirius Space Services,France,Europe
-SLS,SLS,Development,NASA,USA,America
-SLS Block 1,SLS,Development,NASA,USA,America
+SLS,SLS,Active,NASA,USA,America
+SLS Block 1,SLS,Active,NASA,USA,America
 SLS Block 1B,SLS,Development,NASA,USA,America
 SLS Block 2,SLS,Development,NASA,USA,America
 Soyuz 2.1a,Soyuz 2.1a,Active,RKK Energia,Russia,Asia
@@ -137,7 +137,7 @@ Starship/Super Heavy,Starship,Development,SpaceX,USA,America
 Start-1,Start-1,Active,MITT,Russia,Asia
 Strela,Strela,Active,NPO Mashinostroyeniya,Russia,Asia
 STS,STS,Retired,NASA,USA,America
-Terran-1,Terran-1,Development,Relativity Space,USA,America
+Terran-1,Terran-1,Active,Relativity Space,USA,America
 Titan II,Titan II,Retired,USAF,USA,America
 Titan IIIA,Titan III,Retired,USAF,USA,America
 Titan IIIB,Titan III,Retired,USAF,USA,America
@@ -161,4 +161,4 @@ Zenit-3SL,Zenit,Active,Yuzhnoye Design Bureau,Ukraine,Europe
 Zenit-3SLB/3M,Zenit,Active,Yuzhnoye Design Bureau,Ukraine,Europe
 Zero,Zero,Development,Interstellar Technologies,Japan,Asia
 Zhuque-1,Zhuque-1,Active,LandSpace,China,Asia
-Zhuque-2,Zhuque-2,Development,LandSpace,China,Asia
+Zhuque-2,Zhuque-2,Active,LandSpace,China,Asia
