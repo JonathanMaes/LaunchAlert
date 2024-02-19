@@ -9,11 +9,11 @@ Ariane 5 ES,Ariane 5,Retired,Arianespace,EU,Europe
 Ariane 6 A62,Ariane 6,Development,Arianespace,EU,Europe
 Ariane 6 A64,Ariane 6,Development,Arianespace,EU,Europe
 Ariane 6,Ariane 6,Development,Arianespace,EU,Europe
-Atlas V 401,Atlas V,Active,ULA,USA,America
+Atlas V 401,Atlas V,Retired,ULA,USA,America
 Atlas V 411,Atlas V,Retired,ULA,USA,America
 Atlas V 421,Atlas V,Retired,ULA,USA,America
 Atlas V 431,Atlas V,Retired,ULA,USA,America
-Atlas V 501,Atlas V,Active,ULA,USA,America
+Atlas V 501,Atlas V,Retired,ULA,USA,America
 Atlas V 511,Atlas V,Retired,ULA,USA,America
 Atlas V 521,Atlas V,Retired,ULA,USA,America
 Atlas V 531,Atlas V,Retired,ULA,USA,America
@@ -71,7 +71,7 @@ Long March 4C,Long March 4,Active,CASC,China,Asia
 Long March 5,Long March 5,Active,CASC,China,Asia
 Long March 5B,Long March 5,Active,CASC,China,Asia
 Long March 6,Long March 6,Active,CASC,China,Asia
-Long March 6A,Long March 6,Development,CASC,China,Asia
+Long March 6A,Long March 6,Active,CASC,China,Asia
 Long March 7,Long March 7,Active,CASC,China,Asia
 Long March 7A,Long March 7,Active,CASC,China,Asia
 Long March 8,Long March 8,Active,CASC,China,Asia
@@ -132,8 +132,8 @@ SPARK,SPARK,Development,Sandia,USA,America
 SS-520,SS-520,Active,JAXA,Japan,Asia
 SSLV,SSLV,Active,ISRO,India,Asia
 Starship,Starship,Active,SpaceX,USA,America
-Starship/SH,Starship,Development,SpaceX,USA,America
-Starship/Super Heavy,Starship,Development,SpaceX,USA,America
+Starship/SH,Starship,Active,SpaceX,USA,America
+Starship/Super Heavy,Starship,Active,SpaceX,USA,America
 Start-1,Start-1,Active,MITT,Russia,Asia
 Strela,Strela,Active,NPO Mashinostroyeniya,Russia,Asia
 STS,STS,Retired,NASA,USA,America
@@ -152,7 +152,7 @@ Vega E,Vega,Development,ESA,EU,Europe
 VLS-1,VLS,Retired,CTA,Brazil,America
 VLS Alfa,VLS,Development,CTA,Brazil,America
 VLS Beta,VLS,Development,CTA,Brazil,America
-Vulcan,Vulcan,Development,ULA,USA,America
+Vulcan,Vulcan,Active,ULA,USA,America
 Yenisei,Yenisei,Development,RKK Energia,Russia,Asia
 Zenit,Zenit,Active,Yuzhnoye Design Bureau,Ukraine,Europe
 Zenit-2M,Zenit,Active,Yuzhnoye Design Bureau,Ukraine,Europe
@@ -162,3 +162,4 @@ Zenit-3SLB/3M,Zenit,Active,Yuzhnoye Design Bureau,Ukraine,Europe
 Zero,Zero,Development,Interstellar Technologies,Japan,Asia
 Zhuque-1,Zhuque-1,Active,LandSpace,China,Asia
 Zhuque-2,Zhuque-2,Active,LandSpace,China,Asia
+Zhuque-3,Zhuque-3,Development,LandSpace,China,Asia
